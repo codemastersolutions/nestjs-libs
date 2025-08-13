@@ -7,4 +7,4 @@ import { AppFastifyService } from './app.service';
   controllers: [AppFastifyController],
   providers: [AppFastifyService],
 })
-export class AppModule {}
+export class AppFastifyModule {}

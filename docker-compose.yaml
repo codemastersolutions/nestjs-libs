@@ -1,5 +1,5 @@
 services:
-  nestjsLibs:
+  app:
     build: .
     container_name: nestjs-libs
     tty: true
@@ -9,7 +9,7 @@ services:
       - 3901:3901
     volumes:
       - ./:/app
-      - ./.docker/logs/npm:/home/node/.npm/_logs
-      - ./.docker/logs/npm:/root/.npm/_logs
+      # - ./.docker/logs/npm:/home/node/.npm/_logs
+      # - ./.docker/logs/npm:/root/.npm/_logs
       - ~/.ssh:/home/node/.ssh
       - ~/.gitconfig:/home/node/.gitconfig

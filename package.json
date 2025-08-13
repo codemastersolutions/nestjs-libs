@@ -74,5 +74,10 @@
     "moduleNameMapper": {
       "^@nestjs-libs/better-auth(|/.*)$": "<rootDir>/libs/better-auth/src/$1"
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "glob": "11.0.3"
+    }
   }
 }

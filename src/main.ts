@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './express/app.module';
+import { AppExpressModule } from './express/app.module';
+import { AppFastifyModule } from './fastify/app.module';
 
 async function bootstrap() {
-  const appExpress = await NestFactory.create(AppModule);
+  const appExpress = await NestFactory.create(AppExpressModule);
   await appExpress.listen(3900, '0.0.0.0');
-  const appFastify = await NestFactory.create(AppModule);
+  const appFastify = await NestFactory.create(AppFastifyModule);
   await appFastify.listen(3901, '0.0.0.0');
 }
 
