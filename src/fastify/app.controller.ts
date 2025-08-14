@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppFastifyService } from './app.service';
 
-@Controller('fastify')
+@Controller()
 export class AppFastifyController {
   constructor(private readonly appService: AppFastifyService) {}
 

@@ -5,6 +5,7 @@
   "author": "CodeMaster Soluções",
   "private": true,
   "license": "UNLICENSED",
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\"",
@@ -23,6 +24,8 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-fastify": "^11.1.6",
+    "pino-pretty": "^13.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -79,5 +82,10 @@
     "overrides": {
       "glob": "11.0.3"
     }
+  },
+  "engines": {
+    "node": "^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0",
+    "npm": ">=10.0.0",
+    "pnpm": ">=10.14.0"
   }
 }
