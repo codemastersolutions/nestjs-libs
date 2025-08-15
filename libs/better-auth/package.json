@@ -2,11 +2,8 @@
   "name": "@nestjs-libs/better-auth",
   "version": "0.0.1",
   "description": "Better Auth integration for NestJS",
-  "main": "dist/index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/codemastersolutions/nestjs-libs.git"
-  },
+  "author": "CodeMaster Soluções",
+  "license": "MIT",
   "keywords": [
     "better",
     "auth",
@@ -22,12 +19,24 @@
     "solutions",
     "solucoes"
   ],
-  "author": "CodeMaster Soluções",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codemastersolutions/nestjs-libs.git"
+  },
   "bugs": {
     "url": "https://github.com/codemastersolutions/nestjs-libs/issues"
   },
   "homepage": "https://github.com/codemastersolutions/nestjs-libs#readme",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
   "scripts": {
     "test": "jest"
   }

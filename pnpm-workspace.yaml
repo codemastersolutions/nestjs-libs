@@ -3,3 +3,6 @@ ignoredBuiltDependencies:
 
 onlyBuiltDependencies:
   - '@nestjs/core'
+
+packages:
+  - 'libs/*'

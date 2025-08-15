@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.lib.json",
+  "compilerOptions": {
+    "outDir": "dist/esm"
+    // "declaration": false,
+    // "emitDeclarationOnly": false
+  },
+  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
+}

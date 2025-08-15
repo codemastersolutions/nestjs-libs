@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      '@nestjs-libs/better-auth':
+        specifier: workspace:*
+        version: link:libs/better-auth
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -84,6 +87,9 @@ importers:
       prettier:
         specifier: ^3.4.2
         version: 3.6.2
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -108,6 +114,8 @@ importers:
       typescript-eslint:
         specifier: ^8.20.0
         version: 8.39.1(eslint@9.33.0)(typescript@5.9.2)
+
+  libs/better-auth: {}
 
 packages:
 
@@ -2700,6 +2708,11 @@ packages:
 
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
+
+  rimraf@6.0.1:
+    resolution: {integrity: sha512-9dkvaxAsk/xNXSJzMgFqqMCuFgt2+KsOFek3TMLfo8NCPfWpBmqwyNn5Y+NX56QUYfCtsyhF3ayiboEoUmJk/A==}
+    engines: {node: 20 || >=22}
+    hasBin: true
 
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
@@ -6200,6 +6213,11 @@ snapshots:
   reusify@1.1.0: {}
 
   rfdc@1.4.1: {}
+
+  rimraf@6.0.1:
+    dependencies:
+      glob: 11.0.3
+      package-json-from-dist: 1.0.1
 
   router@2.2.0:
     dependencies:
