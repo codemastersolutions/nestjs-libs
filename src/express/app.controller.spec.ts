@@ -15,8 +15,8 @@ describe('AppExpressController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return "Hello World from Express!"', () => {
+      expect(appController.getHello()).toBe('Hello World from Express!');
     });
   });
 });

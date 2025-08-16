@@ -1,10 +1,18 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { AppExpressModule } from './../src/express/app.module';
+import { AppFastifyModule } from './../src/fastify/app.module';
 
-describe('AppController (e2e)', () => {
+const adapter = process.env.ADAPTER || 'express';
+const AppModule = adapter === 'fastify' ? AppFastifyModule : AppExpressModule;
+const expectedMessage =
+  adapter === 'fastify'
+    ? 'Hello World from Fastify!'
+    : 'Hello World from Express!';
+
+describe(`AppController (e2e) - ${adapter}`, () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
@@ -20,6 +28,6 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect(expectedMessage);
   });
 });
