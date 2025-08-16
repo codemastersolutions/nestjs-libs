@@ -50,15 +50,21 @@ jobs:
       - name: Run linting
         run: pnpm run lint
         
-      - name: Run tests
-        run: pnpm test
-        env:
-          ADAPTER: ${{ matrix.adapter }}
-          
+      - name: Run unit tests
+        run: |
+          if [ "${{ matrix.adapter }}" = "express" ]; then
+            pnpm run test:express
+          else
+            pnpm run test:fastify
+          fi
+
       - name: Run e2e tests
-        run: pnpm run test:e2e
-        env:
-          ADAPTER: ${{ matrix.adapter }}
+        run: |
+          if [ "${{ matrix.adapter }}" = "express" ]; then
+            pnpm run test:e2e:express
+          else
+            pnpm run test:e2e:fastify
+          fi
           
   # Job para verificar se todos os testes passaram
   test-results:

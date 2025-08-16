@@ -24,11 +24,11 @@
     "test:better-auth": "npm test -- --testPathPatterns=better-auth",
     "test:better-auth:cov": "npx c8 --reporter=text --reporter=html --reporter=lcov --include='libs/better-auth/src/**/*.ts' --exclude='libs/better-auth/src/**/*.spec.ts' --exclude='libs/better-auth/src/**/*.d.ts' npm test -- --testPathPatterns=better-auth",
     "test:better-auth:watch": "npm test -- --testPathPatterns=better-auth --watch",
-    "test:express": "ADAPTER=express npm run test",
-    "test:fastify": "ADAPTER=fastify npm run test",
-    "test:e2e:express": "ADAPTER=express npm run test:e2e",
-    "test:e2e:fastify": "ADAPTER=fastify npm run test:e2e",
-    "test:all-adapters": "npm run test:express && npm run test:fastify && npm run test:e2e:express && npm run test:e2e:fastify"
+    "test:express": "ADAPTER=express pnpm run test",
+    "test:fastify": "ADAPTER=fastify pnpm run test",
+    "test:e2e:express": "jest --config ./test/jest-e2e.json test/app.e2e-spec.ts",
+    "test:e2e:fastify": "jest --config ./test/jest-e2e.json test/app-fastify.e2e-spec.ts",
+    "test:all-adapters": "pnpm run test:express && pnpm run test:fastify && pnpm run test:e2e:express && pnpm run test:e2e:fastify"
   },
   "dependencies": {
     "@nestjs-libs/better-auth": "workspace:*",
