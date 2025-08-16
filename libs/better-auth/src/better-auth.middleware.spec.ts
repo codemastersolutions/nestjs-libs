@@ -204,6 +204,17 @@ describe('BetterAuthMiddleware', () => {
   });
 
   describe('Error handling', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Mock console.error to avoid log pollution during tests
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
     it('should throw error when disableExceptionFilter is false', async () => {
       const mockRequest = {
         path: '/api/auth/session',
@@ -220,6 +231,11 @@ describe('BetterAuthMiddleware', () => {
       await expect(
         middleware.use(mockRequest, mockResponse, mockNext),
       ).rejects.toThrow('Auth error');
+
+      // Verify that error was logged for security purposes
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[BetterAuthMiddleware] Authentication error: Error',
+      );
     });
 
     it('should return 500 error when disableExceptionFilter is true', async () => {
@@ -243,6 +259,11 @@ describe('BetterAuthMiddleware', () => {
       ).resolves.not.toThrow();
 
       expect(mockResponse.status).toHaveBeenCalledWith(500);
+
+      // Verify that error was logged for security purposes
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[BetterAuthMiddleware] Authentication error: Error',
+      );
       expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
       expect(mockNext).not.toHaveBeenCalled();
     });
