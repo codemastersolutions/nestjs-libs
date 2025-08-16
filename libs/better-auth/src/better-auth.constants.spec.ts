@@ -9,12 +9,14 @@ describe('BetterAuth Constants', () => {
       expect(BETTER_AUTH_OPTIONS).toBeDefined();
     });
 
-    it('should be a string token', () => {
-      expect(typeof BETTER_AUTH_OPTIONS).toBe('string');
+    it('should be a symbol token', () => {
+      expect(typeof BETTER_AUTH_OPTIONS).toBe('symbol');
     });
 
-    it('should have the correct value', () => {
-      expect(BETTER_AUTH_OPTIONS).toBe('BETTER_AUTH_OPTIONS');
+    it('should have the correct description', () => {
+      expect(BETTER_AUTH_OPTIONS.toString()).toBe(
+        'Symbol(BETTER_AUTH_OPTIONS)',
+      );
     });
   });
 
@@ -23,12 +25,14 @@ describe('BetterAuth Constants', () => {
       expect(BETTER_AUTH_INSTANCE).toBeDefined();
     });
 
-    it('should be a string token', () => {
-      expect(typeof BETTER_AUTH_INSTANCE).toBe('string');
+    it('should be a symbol token', () => {
+      expect(typeof BETTER_AUTH_INSTANCE).toBe('symbol');
     });
 
-    it('should have the correct value', () => {
-      expect(BETTER_AUTH_INSTANCE).toBe('BETTER_AUTH_INSTANCE');
+    it('should have the correct description', () => {
+      expect(BETTER_AUTH_INSTANCE.toString()).toBe(
+        'Symbol(BETTER_AUTH_INSTANCE)',
+      );
     });
   });
 

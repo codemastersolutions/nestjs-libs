@@ -222,7 +222,7 @@ describe('BetterAuthMiddleware', () => {
       ).rejects.toThrow('Auth error');
     });
 
-    it('should not throw error when disableExceptionFilter is true', async () => {
+    it('should return 500 error when disableExceptionFilter is true', async () => {
       mockOptions.disableExceptionFilter = true;
       mockBetterAuthService.getOptions.mockReturnValue(mockOptions);
 
@@ -241,7 +241,10 @@ describe('BetterAuthMiddleware', () => {
       await expect(
         middleware.use(mockRequest, mockResponse, mockNext),
       ).resolves.not.toThrow();
-      expect(mockNext).toHaveBeenCalled();
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
+      expect(mockNext).not.toHaveBeenCalled();
     });
   });
 

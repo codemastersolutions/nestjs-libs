@@ -32,6 +32,16 @@ export class BetterAuthService {
    * Handle authentication request
    */
   async handleRequest(request: any) {
+    // Validate request object before processing
+    if (!request || typeof request !== 'object') {
+      throw new Error('Invalid request object provided');
+    }
+
+    // Ensure request has required properties for Web API Request
+    if (!('url' in request) && !('method' in request)) {
+      throw new Error('Request must have url and method properties');
+    }
+
     // Better Auth v1.3+ uses different API structure
     // The handler is now accessed differently
     return this.auth.handler(request as Request);
@@ -41,6 +51,11 @@ export class BetterAuthService {
    * Get session from request
    */
   async getSession(request: { headers: Record<string, string | string[]> }) {
+    // Validate request headers
+    if (!request || !request.headers || typeof request.headers !== 'object') {
+      throw new Error('Invalid request headers provided');
+    }
+
     return this.auth.api.getSession({
       headers: request.headers as HeadersInit,
     });
@@ -50,6 +65,11 @@ export class BetterAuthService {
    * Sign out user
    */
   async signOut(request: { headers: Record<string, string | string[]> }) {
+    // Validate request headers
+    if (!request || !request.headers || typeof request.headers !== 'object') {
+      throw new Error('Invalid request headers provided');
+    }
+
     return this.auth.api.signOut({
       headers: request.headers as HeadersInit,
     });

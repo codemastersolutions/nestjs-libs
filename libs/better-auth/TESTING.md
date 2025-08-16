@@ -83,17 +83,41 @@ Testes para os símbolos da biblioteca:
 
 ## Como Executar os Testes
 
-### Executar todos os testes da biblioteca
+### Scripts Disponíveis
+
+A biblioteca Better Auth possui scripts de teste específicos configurados no `package.json` raiz do projeto:
+
+#### 1. Testes Básicos
+```bash
+npm run test:better-auth
+```
+Executa todos os testes da biblioteca Better Auth sem cobertura de código.
+
+#### 2. Testes com Cobertura
+```bash
+npm run test:better-auth:cov
+```
+Executa todos os testes da biblioteca Better Auth com relatório de cobertura de código usando c8.
+
+#### 3. Testes em Modo Watch
+```bash
+npm run test:better-auth:watch
+```
+Executa os testes em modo watch, reexecutando automaticamente quando arquivos são modificados.
+
+### Executar testes específicos
+
+#### Executar todos os testes da biblioteca
 ```bash
 npm test -- libs/better-auth
 ```
 
-### Executar apenas os testes do serviço
+#### Executar apenas os testes do serviço
 ```bash
 npm test -- --testPathPatterns=better-auth.service.spec.ts
 ```
 
-### Executar apenas os testes do módulo
+#### Executar apenas os testes do módulo
 ```bash
 npm test -- --testPathPatterns=better-auth.module.spec.ts
 ```
@@ -170,7 +194,7 @@ Com a cobertura atual de ~95%, os próximos passos para melhorar ainda mais os t
 ## Comandos Úteis
 
 ```bash
-# Executar testes com watch mode
+# Executar testes com watch mode```bash
 npm test -- --watch libs/better-auth
 
 # Executar testes com cobertura
@@ -179,3 +203,32 @@ npm test -- --coverage libs/better-auth
 # Executar testes em modo verbose
 npm test -- --verbose libs/better-auth
 ```
+
+### Scripts Locais da Biblioteca
+
+Além dos scripts no package.json raiz, a biblioteca também possui seus próprios scripts que podem ser executados diretamente no diretório `libs/better-auth/`:
+
+```bash
+cd libs/better-auth
+
+# Executar testes básicos
+npm test
+
+# Executar testes com cobertura
+npm run test:cov
+
+# Executar testes em modo watch
+npm run test:watch
+
+# Executar testes em modo debug
+npm run test:debug
+```
+
+## Notas Importantes
+
+- Os scripts do package.json raiz devem ser executados a partir do diretório raiz do projeto
+- Os scripts locais da biblioteca podem ser executados diretamente no diretório `libs/better-auth/`
+- O c8 é usado para cobertura devido a incompatibilidades do Jest com o módulo `test-exclude`
+- A biblioteca possui configuração Jest específica em `jest.config.cjs`
+- Todos os 49 testes devem passar com sucesso
+- Logs de console relacionados a "Authentication error" são esperados nos testes do middleware

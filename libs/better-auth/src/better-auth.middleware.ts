@@ -36,9 +36,15 @@ export class BetterAuthMiddleware implements NestMiddleware {
       // Fastify case - req is the raw IncomingMessage
       // Parse URL to get just the pathname
       try {
-        const host = Array.isArray(req.headers?.host)
+        // Validate and sanitize host header to prevent Host Header Injection
+        const rawHost = Array.isArray(req.headers?.host)
           ? req.headers.host[0]
-          : req.headers?.host || 'localhost';
+          : req.headers?.host;
+
+        // Validate host header format and reject suspicious values
+        const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
+        const host = rawHost && hostRegex.test(rawHost) ? rawHost : 'localhost';
+
         const url = new URL(req.url, `http://${host}`);
         requestPath = url.pathname;
       } catch {
@@ -46,29 +52,24 @@ export class BetterAuthMiddleware implements NestMiddleware {
       }
     }
 
-    // Debug: Log request properties
-    const pathStr = req.path || 'undefined';
-    const urlStr = req.url || 'undefined';
-    console.log(
-      `[BetterAuthMiddleware] Debug - req.path: ${pathStr}, req.url: ${urlStr}, extracted path: ${requestPath}`,
-    );
-    console.log(
-      `[BetterAuthMiddleware] Request path: ${requestPath}, Auth path: ${authPath}`,
-    );
+    // Path extraction completed - debug logs removed for security
 
     if (requestPath.startsWith(authPath)) {
-      console.log(
-        `[BetterAuthMiddleware] Handling auth request: ${requestPath}`,
-      );
       try {
         // Create a Web API compatible request object
         const protocol = req.protocol || 'http';
-        const hostHeader = req.get
+        const rawHostHeader = req.get
           ? req.get('host')
           : Array.isArray(req.headers?.host)
             ? req.headers.host[0]
             : req.headers?.host;
-        const host = hostHeader || 'localhost';
+
+        // Validate host header to prevent Host Header Injection
+        const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
+        const host =
+          rawHostHeader && hostRegex.test(rawHostHeader)
+            ? rawHostHeader
+            : 'localhost';
         const originalUrl = req.originalUrl || req.url || '';
         const method = req.method || 'GET';
 
@@ -76,7 +77,7 @@ export class BetterAuthMiddleware implements NestMiddleware {
           method,
           headers: new Headers(req.headers as Record<string, string>),
           body:
-            method !== 'GET' && method !== 'HEAD'
+            method !== 'GET' && method !== 'HEAD' && req.body
               ? JSON.stringify(req.body)
               : undefined,
         });
@@ -106,9 +107,22 @@ export class BetterAuthMiddleware implements NestMiddleware {
         }
         return;
       } catch (error) {
+        // Log security-relevant errors even when exception filter is disabled
+        if (error instanceof Error) {
+          // Only log error type and message, not sensitive details
+          console.error(
+            `[BetterAuthMiddleware] Authentication error: ${error.name}`,
+          );
+        }
+
         if (!options.disableExceptionFilter) {
           throw error;
         }
+
+        // When exception filter is disabled, still return 500 for security errors
+        // to prevent information leakage through different response patterns
+        res.status(500).send('Internal Server Error');
+        return;
       }
     }
 
