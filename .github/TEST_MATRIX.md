@@ -81,7 +81,7 @@ pnpm add -D @nestjs/core@^11 @nestjs/common@^11 @nestjs/testing@^11
 
 ## Status Checks Obrigatórios
 
-Para que um PR seja aprovado, todos os seguintes checks devem passar:
+Para aprovação de PRs, os seguintes 13 status checks devem passar:
 
 1. `Test Results` (job agregador)
 2. `Test Node 20 - NestJS 10 - express`

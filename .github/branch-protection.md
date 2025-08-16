@@ -30,6 +30,8 @@ Para garantir que os pull requests só possam ser merged após os testes passare
     - `Test Node 24 - NestJS 10 - fastify`
     - `Test Node 24 - NestJS 11 - express`
     - `Test Node 24 - NestJS 11 - fastify`
+
+**Total: 13 status checks obrigatórios**
 - ✅ **Require conversation resolution before merging**
 - ✅ **Include administrators**
 

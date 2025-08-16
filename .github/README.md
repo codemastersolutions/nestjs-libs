@@ -26,7 +26,6 @@ strategy:
 #### Jobs Executados:
 1. **test**: Executa testes unitários e e2e para cada combinação
 2. **test-results**: Verifica se todos os testes passaram
-3. **coverage**: Gera relatório de cobertura (opcional)
 
 ## Configuração de Branch Protection
 
@@ -70,9 +69,6 @@ pnpm run test:all-adapters
 Define qual adapter usar nos testes:
 - `express` (padrão)
 - `fastify`
-
-### `CODECOV_TOKEN`
-Token para upload de cobertura para Codecov (opcional).
 
 ## Dependências Automáticas
 
@@ -145,7 +141,6 @@ Ao fazer alterações nos workflows:
 
 O workflow fornece:
 - ✅ Status de cada job individual
-- 📊 Relatórios de cobertura
 - 🔍 Logs detalhados para debug
 - ⚡ Execução paralela para rapidez
 
