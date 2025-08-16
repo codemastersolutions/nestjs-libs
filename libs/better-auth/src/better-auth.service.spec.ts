@@ -92,6 +92,28 @@ describe('BetterAuthService', () => {
         'Auth handler error',
       );
     });
+
+    it('should throw error for invalid request object', async () => {
+      await expect(service.handleRequest(null)).rejects.toThrow(
+        'Invalid request object provided',
+      );
+
+      await expect(service.handleRequest('invalid')).rejects.toThrow(
+        'Invalid request object provided',
+      );
+
+      await expect(service.handleRequest(123)).rejects.toThrow(
+        'Invalid request object provided',
+      );
+    });
+
+    it('should throw error for request without url and method', async () => {
+      const invalidRequest = {};
+
+      await expect(service.handleRequest(invalidRequest)).rejects.toThrow(
+        'Request must have url and method properties',
+      );
+    });
   });
 
   describe('getSession', () => {
@@ -140,6 +162,44 @@ describe('BetterAuthService', () => {
         'Session error',
       );
     });
+
+    it('should throw error for invalid request headers', async () => {
+      await expect(service.getSession(null as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+
+      await expect(service.getSession({} as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+
+      await expect(
+        service.getSession({ headers: null } as any),
+      ).rejects.toThrow('Invalid request headers provided');
+
+      await expect(
+        service.getSession({ headers: 'invalid' } as any),
+      ).rejects.toThrow('Invalid request headers provided');
+    });
+
+    it('should handle headers as number in getSession', async () => {
+      const mockRequest = {
+        headers: 123 as any,
+      };
+
+      await expect(service.getSession(mockRequest)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+    });
+
+    it('should handle headers as boolean in getSession', async () => {
+      const mockRequest = {
+        headers: true as any,
+      };
+
+      await expect(service.getSession(mockRequest)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+    });
   });
 
   describe('signOut', () => {
@@ -167,6 +227,54 @@ describe('BetterAuthService', () => {
 
       await expect(service.signOut(mockRequest)).rejects.toThrow(
         'Sign out error',
+      );
+    });
+
+    it('should throw error for invalid request headers in signOut', async () => {
+      await expect(service.signOut(null as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+
+      await expect(service.signOut({} as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+
+      await expect(service.signOut({ headers: null } as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+
+      await expect(
+        service.signOut({ headers: 'invalid' } as any),
+      ).rejects.toThrow('Invalid request headers provided');
+
+      await expect(
+        service.signOut({ headers: undefined } as any),
+      ).rejects.toThrow('Invalid request headers provided');
+    });
+
+    it('should throw error for invalid request in signOut (undefined request)', async () => {
+      await expect(service.signOut(undefined as any)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+    });
+
+    it('should handle headers as number in signOut', async () => {
+      const mockRequest = {
+        headers: 123 as any,
+      };
+
+      await expect(service.signOut(mockRequest)).rejects.toThrow(
+        'Invalid request headers provided',
+      );
+    });
+
+    it('should handle headers as boolean in signOut', async () => {
+      const mockRequest = {
+        headers: true as any,
+      };
+
+      await expect(service.signOut(mockRequest)).rejects.toThrow(
+        'Invalid request headers provided',
       );
     });
   });

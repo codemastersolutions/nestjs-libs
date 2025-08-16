@@ -344,5 +344,55 @@ describe('BetterAuthMiddleware', () => {
       expect(mockResponse.end).toHaveBeenCalled();
       expect(mockResponse.send).not.toHaveBeenCalled();
     });
+
+    it('should handle request without method (defaults to GET)', async () => {
+      const mockRequest = {
+        path: '/api/auth/session',
+        headers: { host: 'localhost:3000' },
+        protocol: 'http',
+        originalUrl: '/api/auth/session',
+        get: jest.fn().mockReturnValue('localhost:3000'),
+      };
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(
+        mockWebResponse as any,
+      );
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(mockBetterAuthService.handleRequest).toHaveBeenCalled();
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+
+    it('should handle request without originalUrl (uses url)', async () => {
+      const mockRequest = {
+        url: '/api/auth/session',
+        method: 'GET',
+        headers: { host: 'localhost:3000' },
+        protocol: 'http',
+        get: jest.fn().mockReturnValue('localhost:3000'),
+      };
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(
+        mockWebResponse as any,
+      );
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(mockBetterAuthService.handleRequest).toHaveBeenCalled();
+      expect(mockNext).not.toHaveBeenCalled();
+    });
   });
 });
