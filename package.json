@@ -21,7 +21,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:better-auth": "npm test -- --testPathPatterns=better-auth",
+    "test:better-auth:cov": "npx c8 --reporter=text --reporter=html --reporter=lcov --include='libs/better-auth/src/**/*.ts' --exclude='libs/better-auth/src/**/*.spec.ts' --exclude='libs/better-auth/src/**/*.d.ts' npm test -- --testPathPatterns=better-auth",
+    "test:better-auth:watch": "npm test -- --testPathPatterns=better-auth --watch"
   },
   "dependencies": {
     "@nestjs-libs/better-auth": "workspace:*",
