@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -23,6 +19,7 @@ const swagger = (app: INestApplication) => {
     .addBearerAuth()
     .build();
   const swaggerDocument = (app: INestApplication) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     SwaggerModule.createDocument(app, swaggerConfig);
   const document = swaggerDocument(app);
   const scalarOptions: any = {
@@ -45,13 +42,16 @@ const swagger = (app: INestApplication) => {
     operationsSorter: 'method',
     tagsSorter: 'alpha',
   };
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   app.use('/reference', apiReference(scalarOptions));
   // return SwaggerModule.setup('api', app, document);
 };
 
 async function bootstrapExpress() {
   const port: number = 3900 as const;
-  const app = await NestFactory.create(AppExpressModule);
+  const app = await NestFactory.create(AppExpressModule, {
+    bodyParser: false,
+  });
   swagger(app);
   await app.listen(port, host, () => {
     console.log(
