@@ -27,6 +27,13 @@
     "url": "https://github.com/codemastersolutions/nestjs-libs/issues"
   },
   "homepage": "https://github.com/codemastersolutions/nestjs-libs#readme",
+  "readme": "README.md",
+  "readmeFilename": "README.md",
+  "documentation": {
+    "en": "README.md",
+    "pt-BR": "README.pt-BR.md",
+    "es": "README.es.md"
+  },
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "exports": {
