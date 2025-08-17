@@ -7,7 +7,12 @@
   "license": "UNLICENSED",
   "scripts": {
     "clean": "rimraf dist libs/*/dist",
-    "build": "pnpm clean && pnpm build:cjs && pnpm build:esm",
+    "build": "pnpm clean && pnpm build:all-libs",
+    "build:all-libs": "for lib in libs/*/; do lib_name=$(basename $lib); echo \"Building $lib_name...\"; pnpm build:lib $lib_name; done",
+    "build:lib": "pnpm build:lib:cjs $1 && pnpm build:lib:esm $1",
+    "build:lib:cjs": "if [ -f \"libs/$1/tsconfig.build.cjs.json\" ]; then tsc -p libs/$1/tsconfig.build.cjs.json; fi",
+    "build:lib:esm": "if [ -f \"libs/$1/tsconfig.build.esm.json\" ]; then tsc -p libs/$1/tsconfig.build.esm.json; fi",
+    "build:better-auth": "pnpm build:lib better-auth",
     "build:cjs": "tsc -p libs/better-auth/tsconfig.build.cjs.json",
     "build:esm": "tsc -p libs/better-auth/tsconfig.build.esm.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"libs/**/*.ts\" --ignore-path .prettierignore",
@@ -28,7 +33,15 @@
     "test:fastify": "ADAPTER=fastify pnpm run test",
     "test:e2e:express": "jest --config ./test/jest-e2e.json test/app.e2e-spec.ts",
     "test:e2e:fastify": "jest --config ./test/jest-e2e.json test/app-fastify.e2e-spec.ts",
-    "test:all-adapters": "pnpm run test:express && pnpm run test:fastify && pnpm run test:e2e:express && pnpm run test:e2e:fastify"
+    "test:all-adapters": "pnpm run test:express && pnpm run test:fastify && pnpm run test:e2e:express && pnpm run test:e2e:fastify",
+    "libs:list": "./scripts/manage-libs.sh list",
+    "libs:build-all": "./scripts/manage-libs.sh build-all",
+    "libs:test-all": "./scripts/manage-libs.sh test-all",
+    "libs:clean-all": "./scripts/manage-libs.sh clean-all",
+    "libs:status": "./scripts/manage-libs.sh status",
+    "libs:create": "./scripts/manage-libs.sh create",
+    "libs:validate": "./scripts/manage-libs.sh validate",
+    "libs:package-all": "./scripts/manage-libs.sh package-all"
   },
   "dependencies": {
     "@nestjs-libs/better-auth": "workspace:*",

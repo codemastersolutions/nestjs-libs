@@ -1,0 +1,247 @@
+name: Build and Release Libraries
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+    paths:
+      - 'libs/**'
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version increment type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
+    outputs:
+      changed-libs: ${{ steps.changes.outputs.changed-libs }}
+      all-libs: ${{ steps.libs.outputs.all-libs }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get all libraries
+        id: libs
+        run: |
+          libs=$(find libs -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          echo "all-libs=$libs" >> $GITHUB_OUTPUT
+          echo "Found libraries: $libs"
+
+      - name: Detect changed libraries
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger - build all libs
+            changed_libs='${{ steps.libs.outputs.all-libs }}'
+          else
+            # Auto trigger - only changed libs
+            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^libs/' || true)
+            if [ -z "$changed_files" ]; then
+              changed_libs='[]'
+            else
+              changed_libs=$(echo "$changed_files" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+            fi
+          fi
+          echo "changed-libs=$changed_libs" >> $GITHUB_OUTPUT
+          echo "Changed libraries: $changed_libs"
+
+  build-and-release:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed-libs != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lib: ${{ fromJson(needs.detect-changes.outputs.changed-libs) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get current version
+        id: current-version
+        run: |
+          current_version=$(jq -r '.version' libs/${{ matrix.lib }}/package.json)
+          echo "current-version=$current_version" >> $GITHUB_OUTPUT
+          echo "Current version of ${{ matrix.lib }}: $current_version"
+
+      - name: Increment version
+        id: new-version
+        run: |
+          version_type="${{ github.event.inputs.version_type || 'patch' }}"
+          current="${{ steps.current-version.outputs.current-version }}"
+          
+          # Parse semantic version
+          IFS='.' read -r major minor patch <<< "$current"
+          
+          case $version_type in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          new_version="$major.$minor.$patch"
+          echo "new-version=$new_version" >> $GITHUB_OUTPUT
+          echo "New version of ${{ matrix.lib }}: $new_version"
+
+      - name: Update package.json version
+        run: |
+          jq '.version = "${{ steps.new-version.outputs.new-version }}"' libs/${{ matrix.lib }}/package.json > temp.json
+          mv temp.json libs/${{ matrix.lib }}/package.json
+
+      - name: Build library
+        run: |
+          # Clean previous builds
+          pnpm clean
+          
+          # Build CJS
+          if [ -f "libs/${{ matrix.lib }}/tsconfig.build.cjs.json" ]; then
+            echo "Building CJS for ${{ matrix.lib }}..."
+            tsc -p libs/${{ matrix.lib }}/tsconfig.build.cjs.json
+          fi
+          
+          # Build ESM
+          if [ -f "libs/${{ matrix.lib }}/tsconfig.build.esm.json" ]; then
+            echo "Building ESM for ${{ matrix.lib }}..."
+            tsc -p libs/${{ matrix.lib }}/tsconfig.build.esm.json
+          fi
+
+      - name: Run tests
+        run: |
+          echo "Running tests for ${{ matrix.lib }}..."
+          pnpm test -- --testPathPatterns=${{ matrix.lib }}
+
+      - name: Create distribution package
+        run: |
+          cd libs/${{ matrix.lib }}
+          
+          # Create a clean package for distribution
+          mkdir -p ../../dist-packages/${{ matrix.lib }}
+          
+          # Copy package.json and other necessary files
+          cp package.json ../../dist-packages/${{ matrix.lib }}/
+          
+          # Copy README if exists
+          if [ -f "README.md" ]; then
+            cp README.md ../../dist-packages/${{ matrix.lib }}/
+          fi
+          
+          # Copy LICENSE if exists
+          if [ -f "LICENSE" ]; then
+            cp LICENSE ../../dist-packages/${{ matrix.lib }}/
+          fi
+          
+          # Copy built files
+          if [ -d "dist" ]; then
+            cp -r dist ../../dist-packages/${{ matrix.lib }}/
+          fi
+          
+          cd ../../dist-packages/${{ matrix.lib }}
+          
+          # Create tarball
+          npm pack
+          
+          # Move tarball to root for artifact upload
+          mv *.tgz ../../${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add libs/${{ matrix.lib }}/package.json
+          git commit -m "chore(${{ matrix.lib }}): bump version to ${{ steps.new-version.outputs.new-version }}" || exit 0
+
+      - name: Create and push tag
+        run: |
+          tag_name="${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}"
+          git tag -a "$tag_name" -m "Release ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}"
+          git push origin "$tag_name"
+          git push origin main
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
+          name: "${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}"
+          body: |
+            ## 📦 ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
+            
+            ### 🚀 Installation
+            ```bash
+            npm install @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            # or
+            pnpm add @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            # or
+            yarn add @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            ```
+            
+            ### 📋 Changes
+            This release includes the latest changes from the `libs/${{ matrix.lib }}` directory.
+            
+            ### 📁 Artifacts
+            - `${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz` - Complete package ready for installation
+            
+            ---
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ matrix.lib }}-v${{ steps.current-version.outputs.current-version }}...${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
+          files: |
+            ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    needs: [detect-changes, build-and-release]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## 🎉 Build and Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.detect-changes.outputs.changed-libs }}" = "[]" ]; then
+            echo "ℹ️ No libraries were changed or built in this run." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 📦 Libraries processed:" >> $GITHUB_STEP_SUMMARY
+            echo '${{ needs.detect-changes.outputs.changed-libs }}' | jq -r '.[] | "- ✅ " + .' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔗 View Releases" >> $GITHUB_STEP_SUMMARY
+            echo "Check the [Releases page](https://github.com/${{ github.repository }}/releases) for the new releases and download links." >> $GITHUB_STEP_SUMMARY
+          fi
