@@ -4,16 +4,14 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) t
 
 ## 🚀 Quick Start
 
-### Using Commitizen (Recommended)
+### Using git-cz (Recommended)
 
 ```bash
 # Instead of git commit, use:
 pnpm commit
-# or
-npx cz
 ```
 
-This will launch an interactive prompt to help you create properly formatted commit messages.
+This will launch an interactive prompt to help you create properly formatted commit messages using git-cz.
 
 ### Manual Format
 
@@ -98,7 +96,7 @@ The project is configured with:
 
 - **Commitlint**: Validates commit messages against conventional commit rules
 - **Husky**: Git hooks to run commitlint on commit
-- **Commitizen**: Interactive commit message builder
+- **git-cz**: Interactive commit message builder with built-in conventional commits support
 
 ## 🚨 Validation Rules
 

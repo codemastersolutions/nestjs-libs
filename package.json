@@ -42,7 +42,8 @@
     "libs:create": "./scripts/manage-libs.sh create",
     "libs:validate": "./scripts/manage-libs.sh validate",
     "libs:package-all": "./scripts/manage-libs.sh package-all",
-    "commit": "git-cz",
+    "commit": "git add . && git-cz",
+    "commit:push": "git add . && git-cz && git push",
     "prepare": "husky"
   },
   "dependencies": {
