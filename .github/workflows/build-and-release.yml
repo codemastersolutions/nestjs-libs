@@ -31,6 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Get all libraries
         id: libs
@@ -42,12 +43,32 @@ jobs:
       - name: Detect changed libraries
         id: changes
         run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "PR merged: ${{ github.event.pull_request.merged }}"
+          echo "Base ref: ${{ github.event.pull_request.base.ref }}"
+          echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+          
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual trigger - build all libs
             changed_libs='${{ steps.libs.outputs.all-libs }}'
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Pull request trigger - compare with base branch
+            git fetch origin ${{ github.event.pull_request.base.ref }}
+            base_commit=$(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }})
+            echo "Base commit: $base_commit"
+            changed_files=$(git diff --name-only $base_commit..HEAD | grep '^libs/' || true)
+            echo "Changed files: $changed_files"
+            if [ -z "$changed_files" ]; then
+              changed_libs='[]'
+            else
+              changed_libs=$(echo "$changed_files" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
+            fi
           else
-            # Auto trigger - only changed libs
+            # Push trigger - use before and after commits
+            echo "Before commit: ${{ github.event.before }}"
+            echo "After commit: ${{ github.sha }}"
             changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^libs/' || true)
+            echo "Changed files: $changed_files"
             if [ -z "$changed_files" ]; then
               changed_libs='[]'
             else
@@ -55,7 +76,8 @@ jobs:
             fi
           fi
           echo "changed-libs=$changed_libs" >> $GITHUB_OUTPUT
-          echo "Changed libraries: $changed_libs"
+          echo "Final changed libraries: $changed_libs"
+          echo "Libraries count: $(echo $changed_libs | jq length)"
 
   build-and-release:
     needs: detect-changes
@@ -65,6 +87,12 @@ jobs:
       matrix:
         lib: ${{ fromJson(needs.detect-changes.outputs.changed-libs) }}
     steps:
+      - name: Debug job inputs
+        run: |
+          echo "Changed libs from detect-changes: ${{ needs.detect-changes.outputs.changed-libs }}"
+          echo "Current library: ${{ matrix.lib }}"
+          echo "All libs: ${{ needs.detect-changes.outputs.all-libs }}"
+      
       - name: Checkout
         uses: actions/checkout@v4
         with:
