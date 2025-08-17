@@ -75,10 +75,19 @@ pnpm libs:build-all
 ## 🤝 Contributing
 
 See our contributing guides:
-
 - [🇺🇸 English](./CONTRIBUTING.md)
 - [🇧🇷 Português](./CONTRIBUTING.pt-BR.md)
 - [🇪🇸 Español](./CONTRIBUTING.es.md)
+
+### 📝 Commit Guidelines
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/). Use the interactive commit tool:
+
+```bash
+pnpm commit
+```
+
+See our [Conventional Commits Guide](./.github/CONVENTIONAL_COMMITS.md) for detailed information.
 
 ## 📄 License
 

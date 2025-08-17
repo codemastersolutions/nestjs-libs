@@ -70,7 +70,17 @@ pnpm libs:build-all
 
 ## 🤝 Contribuyendo
 
-Ve nuestra [Guía de Contribución](./CONTRIBUTING.es.md) para información detallada sobre cómo contribuir a este proyecto.
+Vea nuestra [Guía de Contribución](./CONTRIBUTING.es.md) para información detallada sobre cómo contribuir a este proyecto.
+
+### 📝 Directrices de Commit
+
+Este proyecto usa [Conventional Commits](https://www.conventionalcommits.org/). Use la herramienta interactiva de commit:
+
+```bash
+pnpm commit
+```
+
+Vea nuestra [Guía de Conventional Commits](./.github/CONVENTIONAL_COMMITS.md) para información detallada.
 
 ## 📄 Licencia
 

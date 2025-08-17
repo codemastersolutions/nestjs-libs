@@ -72,6 +72,16 @@ pnpm libs:build-all
 
 Veja nosso [Guia de Contribuição](./CONTRIBUTING.pt-BR.md) para informações detalhadas sobre como contribuir com este projeto.
 
+### 📝 Diretrizes de Commit
+
+Este projeto usa [Conventional Commits](https://www.conventionalcommits.org/). Use a ferramenta interativa de commit:
+
+```bash
+pnpm commit
+```
+
+Veja nosso [Guia de Conventional Commits](./.github/CONVENTIONAL_COMMITS.md) para informações detalhadas.
+
 ## 📄 Licença
 
 Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
