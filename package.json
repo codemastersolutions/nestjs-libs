@@ -59,6 +59,14 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
+  "config": {
+    "commitizen": {
+      "path": "git-cz"
+    },
+    "cz-customizable": {
+      "config": ".cz-config.js"
+    }
+  },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
