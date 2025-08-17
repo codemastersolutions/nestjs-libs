@@ -222,6 +222,14 @@ jobs:
           git push origin "$tag_name"
           git push origin main
 
+      - name: Publish to NPM
+        run: |
+          cd dist-packages/${{ matrix.lib }}
+          echo "Publishing ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }} to NPM..."
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -244,6 +252,7 @@ jobs:
             
             ### 📁 Artifacts
             - `${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz` - Complete package ready for installation
+            - 📦 **NPM Package**: Available at [npmjs.com/package/@nestjs-libs/${{ matrix.lib }}](https://www.npmjs.com/package/@nestjs-libs/${{ matrix.lib }})
             
             ---
             

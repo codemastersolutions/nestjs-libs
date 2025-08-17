@@ -8,7 +8,9 @@ Um monorepo abrangente de bibliotecas NestJS com sistemas automatizados de build
 
 ## 📦 Bibliotecas Disponíveis
 
-- **[@nestjs-libs/better-auth](./libs/better-auth)** - Integração Better Auth para aplicações NestJS
+| Biblioteca | Descrição | Pacote NPM | Status |
+|------------|-----------|------------|--------|
+| [@nestjs-libs/better-auth](./libs/better-auth) | Integração Better Auth para aplicações NestJS | [![npm](https://img.shields.io/npm/v/@nestjs-libs/better-auth)](https://www.npmjs.com/package/@nestjs-libs/better-auth) | 🚧 Em Desenvolvimento |
 
 ## ✨ Principais Recursos
 
@@ -71,6 +73,16 @@ pnpm libs:build-all
 ## 🤝 Contribuindo
 
 Veja nosso [Guia de Contribuição](./CONTRIBUTING.pt-BR.md) para informações detalhadas sobre como contribuir com este projeto.
+
+### 📝 Diretrizes de Commit
+
+Este projeto usa [Conventional Commits](https://www.conventionalcommits.org/). Use a ferramenta interativa de commit:
+
+```bash
+pnpm commit
+```
+
+Veja nosso [Guia de Conventional Commits](./.github/CONVENTIONAL_COMMITS.md) para informações detalhadas.
 
 ## 📄 Licença
 

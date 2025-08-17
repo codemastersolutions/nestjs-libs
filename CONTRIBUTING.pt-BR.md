@@ -1,12 +1,6 @@
 # Contribuindo para NestJS Libs
 
-**📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
-
-- [🇺🇸 English](CONTRIBUTING.md)
-- [🇧🇷 Português](CONTRIBUTING.pt-BR.md)
-- [🇪🇸 Español](CONTRIBUTING.es.md)
-
----
+**📖 Idiomas da Documentação:** [English](CONTRIBUTING.md) | [Português](CONTRIBUTING.pt-BR.md) | [Español](CONTRIBUTING.es.md)
 
 Damos as boas-vindas às contribuições para o monorepo `nestjs-libs`! Este documento fornece diretrizes e informações para contribuidores trabalhando em qualquer uma de nossas bibliotecas NestJS.
 
@@ -55,7 +49,6 @@ Ao participar deste projeto, você concorda em seguir nosso Código de Conduta. 
    ```
 
 2. Navegue para a biblioteca específica que você deseja trabalhar:
-
    ```bash
    cd libs/<nome-da-biblioteca>
    ```
@@ -188,10 +181,10 @@ describe('LibraryService', () => {
       // Arrange
       const mockRequest = createMockRequest();
       const expectedResponse = createExpectedResponse();
-
+      
       // Act
       const result = await service.handleRequest(mockRequest);
-
+      
       // Assert
       expect(result).toEqual(expectedResponse);
     });

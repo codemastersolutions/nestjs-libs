@@ -12,7 +12,9 @@ A comprehensive monorepo of NestJS libraries with automated build, testing, and 
 
 ## 📦 Available Libraries
 
-- **[@nestjs-libs/better-auth](./libs/better-auth)** - Better Auth integration for NestJS applications
+| Library | Description | NPM Package | Status |
+|---------|-------------|-------------|--------|
+| [@nestjs-libs/better-auth](./libs/better-auth) | Better Auth integration for NestJS applications | [![npm](https://img.shields.io/npm/v/@nestjs-libs/better-auth)](https://www.npmjs.com/package/@nestjs-libs/better-auth) | 🚧 In Development |
 
 ## ✨ Key Features
 
@@ -25,6 +27,19 @@ A comprehensive monorepo of NestJS libraries with automated build, testing, and 
 - 📊 **Release Reports** - Detailed execution summaries
 
 ## 🚀 Quick Start
+
+### Using Published Packages
+
+```bash
+# Install a specific library
+npm install @nestjs-libs/better-auth
+# or
+pnpm add @nestjs-libs/better-auth
+# or
+yarn add @nestjs-libs/better-auth
+```
+
+### Development Setup
 
 ```bash
 # Clone the repository
@@ -75,10 +90,19 @@ pnpm libs:build-all
 ## 🤝 Contributing
 
 See our contributing guides:
-
 - [🇺🇸 English](./CONTRIBUTING.md)
 - [🇧🇷 Português](./CONTRIBUTING.pt-BR.md)
 - [🇪🇸 Español](./CONTRIBUTING.es.md)
+
+### 📝 Commit Guidelines
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/). Use the interactive commit tool:
+
+```bash
+pnpm commit
+```
+
+See our [Conventional Commits Guide](./.github/CONVENTIONAL_COMMITS.md) for detailed information.
 
 ## 📄 License
 

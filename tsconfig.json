@@ -22,12 +22,15 @@
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@nestjs-libs/better-auth": [
-        "libs/better-auth/src"
-      ],
-      "@nestjs-libs/better-auth/*": [
-        "libs/better-auth/src/*"
-      ]
+      "@nestjs-libs/better-auth": ["libs/better-auth/src"],
+      "@nestjs-libs/better-auth/*": ["libs/better-auth/src/*"]
     }
-  }
+  },
+  "include": ["src/**/*", "libs/**/*", "test/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "changelog.config.js"
+  ]
 }
