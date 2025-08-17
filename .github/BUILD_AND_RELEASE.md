@@ -46,8 +46,37 @@ workflow_dispatch:
 - 🏗️ Build CJS + ESM
 - 🧪 Execução de testes
 - 📋 Criação do pacote de distribuição
+- 📤 Publicação no NPM registry
 - 🏷️ Commit + Tag + Push
 - 🎉 Criação da Release no GitHub
+
+## 🎯 Release Process
+
+The release process includes:
+
+1. **Version Management**: Automatic semantic versioning
+2. **Build Process**: TypeScript compilation to CJS and ESM
+3. **Testing**: Comprehensive test execution
+4. **Packaging**: NPM-ready package creation
+5. **NPM Publishing**: Automatic publication to NPM registry
+6. **GitHub Release**: Automated release creation with artifacts
+7. **Tagging**: Git tag creation and pushing
+
+## 📦 NPM Publishing
+
+Each library is automatically published to NPM registry as a separate package:
+
+- **Package Scope**: `@nestjs-libs`
+- **Naming**: `@nestjs-libs/{library-name}`
+- **Access**: Public packages
+- **Registry**: https://registry.npmjs.org
+
+### Requirements
+- NPM token configured in GitHub secrets (`NPM_TOKEN`)
+- Proper package.json configuration in each library
+- Build artifacts (CJS and ESM) available
+
+See [NPM Publishing Guide](./NPM_PUBLISHING.md) for detailed setup instructions.
 
 ## 📦 Estrutura de Artefatos
 
