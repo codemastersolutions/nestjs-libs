@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { Auth } from 'better-auth';
 import {
   BETTER_AUTH_INSTANCE,
   BETTER_AUTH_OPTIONS,
 } from './better-auth.constants';
-import type { BetterAuthModuleOptions } from './better-auth.types';
+import type { Auth, BetterAuthModuleOptions } from './better-auth.types';
 
 @Injectable()
 export class BetterAuthService {
