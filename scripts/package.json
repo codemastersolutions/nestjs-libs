@@ -1,0 +1,35 @@
+{
+  "name": "release-simulator",
+  "version": "1.0.0",
+  "description": "Simulador local para GitHub Actions de build e release",
+  "main": "simulate-release.js",
+  "scripts": {
+    "simulate": "node simulate-release.js",
+    "simulate:verbose": "node simulate-release.js --verbose",
+    "simulate:real": "node simulate-release.js --no-dry-run",
+    "help": "node simulate-release.js --help"
+  },
+  "bin": {
+    "simulate-release": "./simulate-release.js"
+  },
+  "keywords": [
+    "github-actions",
+    "release",
+    "simulator",
+    "conventional-commits",
+    "versioning"
+  ],
+  "author": "CMS NestJS Libs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "semver": "^7.5.4"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "."
+  }
+}

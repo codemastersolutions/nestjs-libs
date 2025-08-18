@@ -1,4 +1,4 @@
-# @cms-nestjs-libs/better-auth
+# @cms-nestjs-libs/better-auth | 🚧 Em Desenvolvimento, erros podem ocorrer. |
 
 **📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
 
@@ -8,7 +8,7 @@
 
 ---
 
-[![npm version](https://badge.fury.io/js/%40nestjs-libs%2Fbetter-auth.svg)](https://badge.fury.io/js/%40nestjs-libs%2Fbetter-auth)
+[![npm version](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth.svg)](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Uma integração abrangente do NestJS para [Better Auth](https://www.better-auth.com/), fornecendo recursos de autenticação perfeitos para suas aplicações NestJS.

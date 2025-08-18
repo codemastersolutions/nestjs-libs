@@ -12,9 +12,9 @@ Um monorepo abrangente de bibliotecas NestJS com sistemas automatizados de build
 
 ## 📦 Bibliotecas Disponíveis
 
-| Biblioteca                                         | Descrição                                     | Pacote NPM                                                                                                                      | Status                |
-| -------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| [@cms-nestjs-libs/better-auth](./libs/better-auth) | Integração Better Auth para aplicações NestJS | [![npm](https://img.shields.io/npm/v/@cms-nestjs-libs/better-auth)](https://www.npmjs.com/package/@cms-nestjs-libs/better-auth) | 🚧 Em Desenvolvimento |
+| Biblioteca                                         | Descrição                                     | Pacote NPM                                                                                                                      | Status                                      |
+| -------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| [@cms-nestjs-libs/better-auth](./libs/better-auth) | Integração Better Auth para aplicações NestJS | [![npm](https://img.shields.io/npm/v/@cms-nestjs-libs/better-auth)](https://www.npmjs.com/package/@cms-nestjs-libs/better-auth) | 🚧 Em Desenvolvimento, erros podem ocorrer. |
 
 ## ✨ Principais Recursos
 

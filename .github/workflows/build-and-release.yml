@@ -5,94 +5,27 @@ on:
     types: [closed]
     branches:
       - main
-    paths:
-      - 'libs/**'
   workflow_dispatch:
     inputs:
       version_type:
-        description: 'Version increment type'
-        required: true
-        default: 'patch'
+        description: 'Version increment type (optional - will be auto-detected from commits if not provided)'
+        required: false
+        default: 'auto'
         type: choice
         options:
+          - auto
           - patch
           - minor
           - major
 
 jobs:
-  detect-changes:
+  build-and-release:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    outputs:
-      changed-libs: ${{ steps.changes.outputs.changed-libs }}
-      all-libs: ${{ steps.libs.outputs.all-libs }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Get all libraries
-        id: libs
-        run: |
-          libs=$(find libs -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
-          echo "all-libs=$libs" >> $GITHUB_OUTPUT
-          echo "Found libraries: $libs"
-
-      - name: Detect changed libraries
-        id: changes
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "PR merged: ${{ github.event.pull_request.merged }}"
-          echo "Base ref: ${{ github.event.pull_request.base.ref }}"
-          echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            # Manual trigger - build all libs
-            changed_libs='${{ steps.libs.outputs.all-libs }}'
-          elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            # Pull request trigger - compare with base branch
-            git fetch origin ${{ github.event.pull_request.base.ref }}
-            base_commit=$(git merge-base HEAD origin/${{ github.event.pull_request.base.ref }})
-            echo "Base commit: $base_commit"
-            changed_files=$(git diff --name-only $base_commit..HEAD | grep '^libs/' || true)
-            echo "Changed files: $changed_files"
-            if [ -z "$changed_files" ]; then
-              changed_libs='[]'
-            else
-              changed_libs=$(echo "$changed_files" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
-            fi
-          else
-            # Push trigger - use before and after commits
-            echo "Before commit: ${{ github.event.before }}"
-            echo "After commit: ${{ github.sha }}"
-            changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^libs/' || true)
-            echo "Changed files: $changed_files"
-            if [ -z "$changed_files" ]; then
-              changed_libs='[]'
-            else
-              changed_libs=$(echo "$changed_files" | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n")[:-1]')
-            fi
-          fi
-          echo "changed-libs=$changed_libs" >> $GITHUB_OUTPUT
-          echo "Final changed libraries: $changed_libs"
-          echo "Libraries count: $(echo $changed_libs | jq length)"
-
-  build-and-release:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.changed-libs != '[]'
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        lib: ${{ fromJson(needs.detect-changes.outputs.changed-libs) }}
+        lib: ['better-auth'] # Add more libraries here as needed
     steps:
-      - name: Debug job inputs
-        run: |
-          echo "Changed libs from detect-changes: ${{ needs.detect-changes.outputs.changed-libs }}"
-          echo "Current library: ${{ matrix.lib }}"
-          echo "All libs: ${{ needs.detect-changes.outputs.all-libs }}"
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -108,7 +41,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 8
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -116,97 +49,152 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          current_version=$(jq -r '.version' libs/${{ matrix.lib }}/package.json)
+          current_version=$(node -p "require('./libs/${{ matrix.lib }}/package.json').version")
           echo "current-version=$current_version" >> $GITHUB_OUTPUT
-          echo "Current version of ${{ matrix.lib }}: $current_version"
+          echo "Current version: $current_version"
 
-      - name: Increment version
+      - name: Get latest release tag
+        id: latest-release
+        run: |
+          # Get the latest release tag for this library
+          latest_tag=$(git tag -l "${{ matrix.lib }}-v*" --sort=-version:refname | head -n 1 || echo "")
+          if [ -z "$latest_tag" ]; then
+            # If no previous release, use initial commit
+            latest_commit=$(git rev-list --max-parents=0 HEAD)
+            echo "latest-tag=" >> $GITHUB_OUTPUT
+            echo "latest-commit=$latest_commit" >> $GITHUB_OUTPUT
+            echo "No previous release found, using initial commit: $latest_commit"
+          else
+            latest_commit=$(git rev-list -n 1 $latest_tag)
+            echo "latest-tag=$latest_tag" >> $GITHUB_OUTPUT
+            echo "latest-commit=$latest_commit" >> $GITHUB_OUTPUT
+            echo "Latest release tag: $latest_tag (commit: $latest_commit)"
+          fi
+
+      - name: Analyze commits and determine version bump
+        id: version-bump
+        run: |
+          # Get commits since last release
+          if [ -n "${{ steps.latest-release.outputs.latest-tag }}" ]; then
+            commits=$(git log ${{ steps.latest-release.outputs.latest-commit }}..HEAD --oneline --grep="^feat\|^fix\|^BREAKING CHANGE\|^perf\|^refactor\|^docs\|^style\|^test\|^chore" || echo "")
+          else
+            commits=$(git log --oneline --grep="^feat\|^fix\|^BREAKING CHANGE\|^perf\|^refactor\|^docs\|^style\|^test\|^chore" || echo "")
+          fi
+          
+          echo "Commits since last release:"
+          echo "$commits"
+          
+          # Determine version bump type based on conventional commits
+          version_type="${{ github.event.inputs.version_type }}"
+          
+          if [ "$version_type" = "auto" ] || [ -z "$version_type" ]; then
+            # Auto-detect version bump
+            if echo "$commits" | grep -q "^[a-f0-9]* \(feat\|BREAKING CHANGE\)"; then
+              if echo "$commits" | grep -q "BREAKING CHANGE"; then
+                version_type="major"
+              else
+                version_type="minor"
+              fi
+            elif echo "$commits" | grep -q "^[a-f0-9]* \(fix\|perf\)"; then
+              version_type="patch"
+            else
+              # Default to patch for other changes
+              version_type="patch"
+            fi
+          fi
+          
+          echo "version-type=$version_type" >> $GITHUB_OUTPUT
+          echo "Determined version bump type: $version_type"
+
+      - name: Bump version
         id: new-version
         run: |
-          version_type="${{ github.event.inputs.version_type || 'patch' }}"
-          current="${{ steps.current-version.outputs.current-version }}"
-
-          # Parse semantic version
-          IFS='.' read -r major minor patch <<< "$current"
-
-          case $version_type in
-            major)
-              major=$((major + 1))
-              minor=0
-              patch=0
-              ;;
-            minor)
-              minor=$((minor + 1))
-              patch=0
-              ;;
-            patch)
-              patch=$((patch + 1))
-              ;;
-          esac
-
-          new_version="$major.$minor.$patch"
+          cd libs/${{ matrix.lib }}
+          
+          # Bump version using npm version
+          new_version=$(npm version ${{ steps.version-bump.outputs.version-type }} --no-git-tag-version)
+          new_version=${new_version#v} # Remove 'v' prefix if present
+          
           echo "new-version=$new_version" >> $GITHUB_OUTPUT
-          echo "New version of ${{ matrix.lib }}: $new_version"
-
-      - name: Update package.json version
-        run: |
-          jq '.version = "${{ steps.new-version.outputs.new-version }}"' libs/${{ matrix.lib }}/package.json > temp.json
-          mv temp.json libs/${{ matrix.lib }}/package.json
+          echo "New version: $new_version"
 
       - name: Build library
         run: |
-          # Clean previous builds
-          pnpm clean
-
-          # Build CJS
-          if [ -f "libs/${{ matrix.lib }}/tsconfig.build.cjs.json" ]; then
-            echo "Building CJS for ${{ matrix.lib }}..."
-            tsc -p libs/${{ matrix.lib }}/tsconfig.build.cjs.json
-          fi
-
-          # Build ESM
-          if [ -f "libs/${{ matrix.lib }}/tsconfig.build.esm.json" ]; then
-            echo "Building ESM for ${{ matrix.lib }}..."
-            tsc -p libs/${{ matrix.lib }}/tsconfig.build.esm.json
-          fi
+          echo "Building library: ${{ matrix.lib }}"
+          pnpm run build:lib ${{ matrix.lib }}
 
       - name: Run tests
         run: |
-          echo "Running tests for ${{ matrix.lib }}..."
-          pnpm test -- --testPathPatterns=${{ matrix.lib }}
+          echo "Running tests for library: ${{ matrix.lib }}"
+          cd libs/${{ matrix.lib }}
+          if [ -f "package.json" ] && grep -q '"test"' package.json; then
+            pnpm test
+          else
+            echo "No tests found for ${{ matrix.lib }}, skipping..."
+          fi
 
       - name: Create distribution package
         run: |
-          cd libs/${{ matrix.lib }}
-
-          # Create a clean package for distribution
-          mkdir -p ../../dist-packages/${{ matrix.lib }}
-
-          # Copy package.json and other necessary files
-          cp package.json ../../dist-packages/${{ matrix.lib }}/
-
-          # Copy README if exists
-          if [ -f "README.md" ]; then
-            cp README.md ../../dist-packages/${{ matrix.lib }}/
-          fi
-
+          lib_name="${{ matrix.lib }}"
+          lib_dir="libs/$lib_name"
+          dist_dir="$lib_dir/dist"
+          
+          echo "Creating distribution package for $lib_name"
+          
+          # Create dist directory if it doesn't exist
+          mkdir -p "$dist_dir"
+          
+          # Copy package.json
+          cp "$lib_dir/package.json" "$dist_dir/"
+          
+          # Copy README files
+          find "$lib_dir" -name "README*.md" -exec cp {} "$dist_dir/" \;
+          
           # Copy LICENSE if exists
-          if [ -f "LICENSE" ]; then
-            cp LICENSE ../../dist-packages/${{ matrix.lib }}/
+          if [ -f "$lib_dir/LICENSE" ]; then
+            cp "$lib_dir/LICENSE" "$dist_dir/"
           fi
-
-          # Copy built files
-          if [ -d "dist" ]; then
-            cp -r dist ../../dist-packages/${{ matrix.lib }}/
-          fi
-
-          cd ../../dist-packages/${{ matrix.lib }}
-
+          
           # Create tarball
+          cd "$dist_dir"
           npm pack
+          
+          echo "Distribution package created successfully"
 
-          # Move tarball to root for artifact upload
-          mv *.tgz ../../${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          # Get commits since last release for release notes
+          if [ -n "${{ steps.latest-release.outputs.latest-tag }}" ]; then
+            commits=$(git log ${{ steps.latest-release.outputs.latest-commit }}..HEAD --pretty=format:"- %s (%h)" --grep="^feat\|^fix\|^BREAKING CHANGE\|^perf\|^refactor" || echo "")
+          else
+            commits=$(git log --pretty=format:"- %s (%h)" --grep="^feat\|^fix\|^BREAKING CHANGE\|^perf\|^refactor" || echo "")
+          fi
+          
+          if [ -z "$commits" ]; then
+            commits="- Miscellaneous improvements and bug fixes"
+          fi
+          
+          # Create release notes
+          release_notes="## Changes in v${{ steps.new-version.outputs.new-version }}
+          
+          $commits
+          
+          ### Library: ${{ matrix.lib }}
+          **Version:** ${{ steps.new-version.outputs.new-version }}
+          **Previous Version:** ${{ steps.current-version.outputs.current-version }}
+          **Bump Type:** ${{ steps.version-bump.outputs.version-type }}
+          
+          ---
+          *This release was automatically generated based on conventional commits.*"
+          
+          # Save release notes to file and output
+          echo "$release_notes" > release-notes.md
+          {
+            echo "release-notes<<EOF"
+            echo "$release_notes"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Commit version bump
         run: |
@@ -220,65 +208,36 @@ jobs:
           tag_name="${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}"
           git tag -a "$tag_name" -m "Release ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}"
           git push origin "$tag_name"
-          git push origin main
+          git push origin HEAD:main
+          echo "Created and pushed tag: $tag_name"
 
       - name: Publish to NPM
         run: |
-          cd dist-packages/${{ matrix.lib }}
-          echo "Publishing ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }} to NPM..."
+          cd libs/${{ matrix.lib }}/dist
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
-          name: '${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}'
-          body: |
-            ## 📦 ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
-
-            ### 🚀 Installation
-            ```bash
-            npm install @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
-            # or
-            pnpm add @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
-            # or
-            yarn add @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
-            ```
-
-            ### 📋 Changes
-            This release includes the latest changes from the `libs/${{ matrix.lib }}` directory.
-
-            ### 📁 Artifacts
-            - `${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz` - Complete package ready for installation
-            - 📦 **NPM Package**: Available at [npmjs.com/package/@cms-nestjs-libs/${{ matrix.lib }}](https://www.npmjs.com/package/@cms-nestjs-libs/${{ matrix.lib }})
-
-            ---
-
-            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ matrix.lib }}-v${{ steps.current-version.outputs.current-version }}...${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
-          files: |
-            ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
+          release_name: ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
+          body: ${{ steps.release-notes.outputs.release-notes }}
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-  summary:
-    needs: [detect-changes, build-and-release]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Summary
+      - name: Build Summary
         run: |
-          echo "## 🎉 Build and Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Build and Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ needs.detect-changes.outputs.changed-libs }}" = "[]" ]; then
-            echo "ℹ️ No libraries were changed or built in this run." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### 📦 Libraries processed:" >> $GITHUB_STEP_SUMMARY
-            echo '${{ needs.detect-changes.outputs.changed-libs }}' | jq -r '.[] | "- ✅ " + .' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 🔗 View Releases" >> $GITHUB_STEP_SUMMARY
-            echo "Check the [Releases page](https://github.com/${{ github.repository }}/releases) for the new releases and download links." >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "### Library: ${{ matrix.lib }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Previous Version:** ${{ steps.current-version.outputs.current-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **New Version:** ${{ steps.new-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Bump Type:** ${{ steps.version-bump.outputs.version-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Release Notes" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.release-notes.outputs.release-notes }}" >> $GITHUB_STEP_SUMMARY
