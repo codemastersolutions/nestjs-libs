@@ -9,16 +9,19 @@ Each library in the `libs/` directory is automatically published as a separate N
 ## 📋 Package Configuration
 
 ### Package Naming Convention
-All packages are published under the `@nestjs-libs` scope:
-- `libs/better-auth` → `@nestjs-libs/better-auth`
-- `libs/new-lib` → `@nestjs-libs/new-lib`
+
+All packages are published under the `@cms-nestjs-libs` scope:
+
+- `libs/better-auth` → `@cms-nestjs-libs/better-auth`
+- `libs/new-lib` → `@cms-nestjs-libs/new-lib`
 
 ### Required package.json Fields
+
 Each library's `package.json` must include:
 
 ```json
 {
-  "name": "@nestjs-libs/library-name",
+  "name": "@cms-nestjs-libs/library-name",
   "version": "0.0.1",
   "description": "Library description",
   "main": "./dist/cjs/index.js",
@@ -43,6 +46,7 @@ Each library's `package.json` must include:
 ## ⚙️ Setup Requirements
 
 ### 1. NPM Token Configuration
+
 To enable automatic publishing, you need to configure an NPM token:
 
 1. **Create NPM Token**:
@@ -59,7 +63,8 @@ To enable automatic publishing, you need to configure an NPM token:
    - Paste your NPM token as the value
 
 ### 2. NPM Organization Setup
-Ensure the `@nestjs-libs` organization exists on NPM and you have publishing permissions.
+
+Ensure the `@cms-nestjs-libs` organization exists on NPM and you have publishing permissions.
 
 ## 🔄 Publishing Process
 
@@ -69,6 +74,7 @@ The publishing happens automatically when:
 2. **Manual Trigger**: Using the workflow dispatch with version type selection
 
 ### Workflow Steps:
+
 1. **Detect Changes**: Identifies which libraries were modified
 2. **Version Increment**: Automatically bumps version (patch/minor/major)
 3. **Build**: Compiles TypeScript to CJS and ESM formats
@@ -81,25 +87,30 @@ The publishing happens automatically when:
 ## 📊 Version Management
 
 ### Automatic Versioning
+
 - **Pull Request**: Defaults to `patch` increment
 - **Manual Trigger**: Choose between `patch`, `minor`, or `major`
 
 ### Version Format
+
 Follows semantic versioning (SemVer):
+
 - `MAJOR.MINOR.PATCH`
 - Example: `1.2.3`
 
 ## 🏷️ Tagging Strategy
 
 Each library gets its own tag:
+
 - Format: `{library-name}-v{version}`
 - Example: `better-auth-v1.2.3`
 
 ## 📦 Package Structure
 
 Published packages include:
+
 ```
-@nestjs-libs/library-name/
+@cms-nestjs-libs/library-name/
 ├── dist/
 │   ├── cjs/          # CommonJS build
 │   └── esm/          # ES Modules build
@@ -111,8 +122,9 @@ Published packages include:
 ## 🔍 Monitoring
 
 ### Check Publication Status
+
 1. **GitHub Actions**: Monitor workflow runs in the Actions tab
-2. **NPM Registry**: Check package page at `https://www.npmjs.com/package/@nestjs-libs/{library-name}`
+2. **NPM Registry**: Check package page at `https://www.npmjs.com/package/@cms-nestjs-libs/{library-name}`
 3. **GitHub Releases**: View releases in the repository
 
 ### Troubleshooting
@@ -124,7 +136,7 @@ Common issues and solutions:
    - Update `NPM_TOKEN` secret in GitHub
 
 2. **Permission Denied**:
-   - Ensure you're a member of `@nestjs-libs` organization
+   - Ensure you're a member of `@cms-nestjs-libs` organization
    - Check organization permissions on NPM
 
 3. **Version Already Exists**:

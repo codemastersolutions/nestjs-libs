@@ -1,9 +1,5 @@
 {
-  "moduleFileExtensions": [
-    "js",
-    "json",
-    "ts"
-  ],
+  "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
@@ -11,7 +7,7 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@nestjs-libs/better-auth": "<rootDir>/../libs/better-auth/src",
-    "@nestjs-libs/better-auth/(.*)": "<rootDir>/../libs/better-auth/src/$1"
+    "@cms-nestjs-libs/better-auth": "<rootDir>/../libs/better-auth/src",
+    "@cms-nestjs-libs/better-auth/(.*)": "<rootDir>/../libs/better-auth/src/$1"
   }
 }
