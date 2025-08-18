@@ -209,12 +209,35 @@ jobs:
           git push origin HEAD:main
           echo "Created and pushed tag: $tag_name"
 
+      - name: Check NPM Authentication
+        id: npm-auth-check
+        run: |
+          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "⚠️  NPM_TOKEN not configured in repository secrets"
+            echo "📝 To enable NPM publishing, add NPM_TOKEN to repository secrets"
+            echo "npm-auth-available=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ NPM_TOKEN is configured"
+            echo "npm-auth-available=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to NPM
+        if: steps.npm-auth-check.outputs.npm-auth-available == 'true'
         run: |
           cd libs/${{ matrix.lib }}/dist
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: NPM Publishing Skipped
+        if: steps.npm-auth-check.outputs.npm-auth-available == 'false'
+        run: |
+          echo "🚫 NPM publishing skipped - NPM_TOKEN not configured"
+          echo "📦 Package built successfully but not published to NPM"
+          echo "🔧 To enable NPM publishing:"
+          echo "   1. Generate an NPM access token at https://www.npmjs.com/settings/tokens"
+          echo "   2. Add it as NPM_TOKEN in repository secrets"
+          echo "   3. Re-run this workflow"
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -236,6 +259,18 @@ jobs:
           echo "- **New Version:** ${{ steps.new-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version Bump Type:** ${{ steps.version-bump.outputs.version-type }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Tag:** ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}" >> $GITHUB_STEP_SUMMARY
+          
+          # NPM Publishing Status
+          if [ "${{ steps.npm-auth-check.outputs.npm-auth-available }}" = "true" ]; then
+            echo "- **NPM Publishing:** ✅ Published to NPM" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **NPM Publishing:** ⚠️ Skipped (NPM_TOKEN not configured)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔧 NPM Publishing Setup" >> $GITHUB_STEP_SUMMARY
+            echo "To enable NPM publishing, configure NPM_TOKEN in repository secrets." >> $GITHUB_STEP_SUMMARY
+            echo "See [NPM_TOKEN Setup Guide](.github/NPM_TOKEN_SETUP.md) for detailed instructions." >> $GITHUB_STEP_SUMMARY
+          fi
+          
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📝 Release Notes" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.release-notes.outputs.release-notes }}" >> $GITHUB_STEP_SUMMARY
