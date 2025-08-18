@@ -30,7 +30,6 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts",
-    "**/*.test.ts",
-    "changelog.config.js"
+    "**/*.test.ts"
   ]
 }
