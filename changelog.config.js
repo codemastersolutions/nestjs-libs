@@ -36,9 +36,9 @@ module.exports = {
       value: 'ci',
     },
     docs: {
-      description: 'Documentation only changes',
+      description: ' Documentation only changes',
       emoji: '✏️',
-      value: 'docs',
+      value: ' docs',
     },
     feat: {
       description: 'A new feature',
