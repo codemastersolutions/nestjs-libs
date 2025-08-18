@@ -53,9 +53,7 @@
     "test": "jest",
     "test:cov": "npx c8 --reporter=text --reporter=html --reporter=lcov --include='src/**/*.ts' --exclude='src/**/*.spec.ts' --exclude='src/**/*.d.ts' jest",
     "test:watch": "jest --watch",
-    "test:debug": "node --inspect-brk -r ts-node/register node_modules/.bin/jest --runInBand",
-    "publish": "npm publish --access public",
-    "publish:dry-run": "npm publish --access public --dry-run"
+    "test:debug": "node --inspect-brk -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "peerDependencies": {
     "typescript": "^5.1.3",

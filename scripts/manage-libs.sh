@@ -635,11 +635,12 @@ publish_lib() {
     fi
 
     # Publish
-    local publish_cmd="npm publish --access public"
+    local publish_cmd="npm publish"
     if [ "$dry_run" = "--dry-run" ]; then
         publish_cmd="$publish_cmd --dry-run"
         log_info "Publishing $package_name@$version (dry-run)..."
     else
+        publish_cmd="$publish_cmd --access public"
         log_info "Publishing $package_name@$version..."
     fi
 
