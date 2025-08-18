@@ -15,10 +15,10 @@ class ReleaseSimulator {
     this.library = options.library || 'better-auth';
     this.dryRun = options.dryRun !== false; // Por padrão é dry-run
     this.verbose = options.verbose || false;
-    this.workingDir = process.cwd();
     // Configurações
     const PROJECT_ROOT = path.resolve(__dirname, '..');
     const LIBS_DIR = path.join(PROJECT_ROOT, 'libs');
+    this.workingDir = PROJECT_ROOT; // Diretório raiz do projeto
     this.libraryPath = path.join(LIBS_DIR, this.library);
     
     this.log('🚀 Iniciando simulador de release');
@@ -48,7 +48,7 @@ class ReleaseSimulator {
       const result = execSync(command, {
         cwd: this.workingDir,
         encoding: 'utf8',
-        stdio: this.verbose ? 'inherit' : 'pipe',
+        stdio: 'pipe', // Sempre usar pipe para capturar o output
         ...options
       });
       return result?.toString().trim();
@@ -131,7 +131,13 @@ class ReleaseSimulator {
     try {
       const commits = this.exec(gitCommand);
       
-      if (!commits) {
+      if (this.verbose) {
+        this.log(`📝 Resultado do comando git: "${commits}"`, 'debug');
+        this.log(`📝 Tipo do resultado: ${typeof commits}`, 'debug');
+        this.log(`📝 Comprimento: ${commits?.length || 0}`, 'debug');
+      }
+      
+      if (!commits || commits.trim() === '') {
         this.log('📝 Nenhum commit novo encontrado');
         return [];
       }
@@ -143,12 +149,17 @@ class ReleaseSimulator {
           subject: subject?.trim(),
           body: body?.trim() || ''
         };
-      }).filter(commit => commit.hash);
+      }).filter(commit => commit.hash && commit.hash !== '');
+      
+      if (this.verbose) {
+        this.log(`📝 Commits processados: ${JSON.stringify(commitList.slice(0, 2), null, 2)}`, 'debug');
+      }
       
       this.log(`📝 ${commitList.length} commits encontrados`);
       return commitList;
     } catch (error) {
       this.log('⚠️ Erro ao obter commits', 'warning');
+      this.log(`⚠️ Erro detalhado: ${error.message}`, 'warning');
       return [];
     }
   }
