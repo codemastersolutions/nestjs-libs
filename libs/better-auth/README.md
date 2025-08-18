@@ -13,6 +13,19 @@
 
 A comprehensive NestJS integration for [Better Auth](https://www.better-auth.com/), providing seamless authentication capabilities for your NestJS applications.
 
+## Inspiration and Need
+
+This library was inspired by the excellent work of [ThallesP/nestjs-better-auth](https://github.com/ThallesP/nestjs-better-auth), which provides Better Auth integration for NestJS applications. However, we identified a critical need in the ecosystem: **Fastify support**.
+
+While the original library focuses exclusively on Express.js, many modern NestJS applications leverage Fastify for its superior performance characteristics. This library bridges that gap by providing:
+
+- **Universal Framework Support**: Works seamlessly with both Express.js and Fastify
+- **Performance Optimization**: Takes advantage of Fastify's speed while maintaining Express compatibility
+- **Unified API**: Consistent authentication experience regardless of the underlying HTTP adapter
+- **Enhanced Security**: Additional security measures and validation layers
+
+Our goal is to provide the NestJS community with a robust, framework-agnostic authentication solution that doesn't compromise on performance or security.
+
 ## Features
 
 - 🚀 **Easy Integration**: Simple setup with NestJS dependency injection
@@ -31,6 +44,44 @@ yarn add @nestjs-libs/better-auth better-auth
 # or
 pnpm add @nestjs-libs/better-auth better-auth
 ```
+
+## Available Scripts
+
+The library includes several npm scripts for development and testing:
+
+### 🧪 Testing Scripts
+
+| Command | Description | Example |
+|---------|-------------|----------|
+| `npm test` | Run all tests using Jest | `npm test` |
+| `npm run test:watch` | Run tests in watch mode for development | `npm run test:watch` |
+| `npm run test:cov` | Run tests with coverage report (text, HTML, LCOV) | `npm run test:cov` |
+| `npm run test:debug` | Run tests in debug mode with Node.js inspector | `npm run test:debug` |
+
+### 📊 Coverage Reports
+
+When running `npm run test:cov`, coverage reports are generated in multiple formats:
+- **Text**: Console output with coverage summary
+- **HTML**: Interactive HTML report in `coverage/` directory
+- **LCOV**: Machine-readable format for CI/CD integration
+
+### 🔧 Development Workflow
+
+```bash
+# Install dependencies
+npm install
+
+# Run tests during development
+npm run test:watch
+
+# Generate coverage report
+npm run test:cov
+
+# Debug failing tests
+npm run test:debug
+```
+
+> **💡 Tip**: Use `test:watch` during development to automatically re-run tests when files change.
 
 ## Quick Start
 
@@ -98,6 +149,76 @@ export class AuthController {
 | `disableMiddleware`         | `boolean` | `false`      | Disable the middleware ⚠️       |
 
 ⚠️ **Security Warning**: Options marked with ⚠️ have security implications. Only disable these features if you understand the risks and have alternative protection mechanisms.
+
+## Framework Compatibility
+
+This library is designed to work seamlessly with both **Express.js** and **Fastify** frameworks:
+
+### Express.js Support
+- Native support for Express request/response objects
+- Automatic middleware integration
+- Full compatibility with Express ecosystem
+
+### Fastify Support
+- Compatible with Fastify through `@fastify/middie` plugin
+- Handles raw IncomingMessage objects
+- Automatic request object normalization
+
+### Universal Request Handling
+
+The middleware automatically detects and handles different request object formats:
+
+```typescript
+// Works with both Express and Fastify
+interface UniversalRequest {
+  path?: string;        // Express format
+  url?: string;         // Fastify/raw format
+  method?: string;
+  headers?: Record<string, string | string[]>;
+  protocol?: string;
+  originalUrl?: string;
+  body?: any;
+  get?: (header: string) => string | undefined;
+}
+```
+
+## Security Features
+
+The library includes several built-in security measures:
+
+### Host Header Injection Protection
+
+```typescript
+// Automatic validation of host headers
+const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
+const host = rawHost && hostRegex.test(rawHost) ? rawHost : 'localhost';
+```
+
+### Request Validation
+
+```typescript
+// All service methods include input validation
+if (!request || typeof request !== 'object') {
+  throw new Error('Invalid request object provided');
+}
+
+if (!request.headers || typeof request.headers !== 'object') {
+  throw new Error('Invalid request headers provided');
+}
+```
+
+### Dependency Injection Tokens
+
+The library uses Symbol-based tokens to prevent injection conflicts:
+
+```typescript
+// Available symbols for advanced usage
+export const BETTER_AUTH_BEFORE_HOOK = Symbol('BETTER_AUTH_BEFORE_HOOK');
+export const BETTER_AUTH_AFTER_HOOK = Symbol('BETTER_AUTH_AFTER_HOOK');
+export const BETTER_AUTH_HOOK = Symbol('BETTER_AUTH_HOOK');
+export const BETTER_AUTH_INSTANCE = Symbol('BETTER_AUTH_INSTANCE');
+export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
+```
 
 ## Advanced Configuration
 
@@ -198,11 +319,55 @@ BetterAuthModule.forRoot({
 
 #### Methods
 
-- `getAuth(): Auth` - Get the Better Auth instance
-- `getOptions(): BetterAuthModuleOptions` - Get module options
-- `handleRequest(request: any): Promise<Response>` - Handle authentication request
-- `getSession(request: { headers: Record<string, string | string[]> }): Promise<any>` - Get user session
-- `signOut(request: { headers: Record<string, string | string[]> }): Promise<any>` - Sign out user
+##### `getAuth(): Auth`
+Returns the Better Auth instance for direct access to Better Auth functionality.
+
+##### `getOptions(): BetterAuthModuleOptions`
+Returns the module configuration options.
+
+##### `handleRequest(request: Request): Promise<Response>`
+Handles authentication requests using the Better Auth handler. Includes comprehensive input validation:
+- Validates request object structure
+- Ensures required properties (url, method) are present
+- Compatible with Web API Request format
+
+```typescript
+// Example usage
+const webRequest = new Request('https://example.com/api/auth/signin', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'user@example.com', password: 'password' })
+});
+
+const response = await betterAuthService.handleRequest(webRequest);
+```
+
+##### `getSession(request: { headers: Record<string, string | string[]> }): Promise<any>`
+Retrieves the current user session from request headers. Includes header validation:
+- Validates request headers structure
+- Ensures headers object is properly formatted
+
+```typescript
+// Example usage
+const session = await betterAuthService.getSession({
+  headers: {
+    'cookie': 'session=abc123',
+    'authorization': 'Bearer token123'
+  }
+});
+```
+
+##### `signOut(request: { headers: Record<string, string | string[]> }): Promise<any>`
+Signs out the current user. Includes the same header validation as `getSession`.
+
+```typescript
+// Example usage
+const result = await betterAuthService.signOut({
+  headers: {
+    'cookie': 'session=abc123'
+  }
+});
+```
 
 ## Examples
 

@@ -13,6 +13,19 @@
 
 Una integración integral de NestJS para [Better Auth](https://www.better-auth.com/), proporcionando capacidades de autenticación perfectas para tus aplicaciones NestJS.
 
+## Inspiración y Necesidad
+
+Esta biblioteca fue inspirada por el excelente trabajo de [ThallesP/nestjs-better-auth](https://github.com/ThallesP/nestjs-better-auth), que proporciona integración de Better Auth para aplicaciones NestJS. Sin embargo, identificamos una necesidad crítica en el ecosistema: **soporte para Fastify**.
+
+Mientras que la biblioteca original se enfoca exclusivamente en Express.js, muchas aplicaciones NestJS modernas aprovechan Fastify por sus características superiores de rendimiento. Esta biblioteca llena ese vacío proporcionando:
+
+- **Soporte Universal de Frameworks**: Funciona perfectamente con Express.js y Fastify
+- **Optimización de Rendimiento**: Aprovecha la velocidad de Fastify manteniendo compatibilidad con Express
+- **API Unificada**: Experiencia de autenticación consistente independientemente del adaptador HTTP subyacente
+- **Seguridad Mejorada**: Medidas de seguridad adicionales y capas de validación
+
+Nuestro objetivo es proporcionar a la comunidad NestJS una solución de autenticación robusta y agnóstica de frameworks que no comprometa el rendimiento o la seguridad.
+
 ## Características
 
 - 🚀 **Integración Fácil**: Configuración simple con inyección de dependencias de NestJS
@@ -31,6 +44,44 @@ yarn add @nestjs-libs/better-auth better-auth
 # o
 pnpm add @nestjs-libs/better-auth better-auth
 ```
+
+## Scripts Disponibles
+
+La biblioteca incluye varios scripts npm para desarrollo y pruebas:
+
+### 🧪 Scripts de Pruebas
+
+| Comando | Descripción | Ejemplo |
+|---------|-------------|----------|
+| `npm test` | Ejecuta todas las pruebas usando Jest | `npm test` |
+| `npm run test:watch` | Ejecuta pruebas en modo watch para desarrollo | `npm run test:watch` |
+| `npm run test:cov` | Ejecuta pruebas con reporte de cobertura (texto, HTML, LCOV) | `npm run test:cov` |
+| `npm run test:debug` | Ejecuta pruebas en modo debug con Node.js inspector | `npm run test:debug` |
+
+### 📊 Reportes de Cobertura
+
+Al ejecutar `npm run test:cov`, se generan reportes de cobertura en múltiples formatos:
+- **Texto**: Salida en consola con resumen de cobertura
+- **HTML**: Reporte HTML interactivo en el directorio `coverage/`
+- **LCOV**: Formato legible por máquina para integración CI/CD
+
+### 🔧 Flujo de Desarrollo
+
+```bash
+# Instalar dependencias
+npm install
+
+# Ejecutar pruebas durante desarrollo
+npm run test:watch
+
+# Generar reporte de cobertura
+npm run test:cov
+
+# Debuggear pruebas que fallan
+npm run test:debug
+```
+
+> **💡 Consejo**: Usa `test:watch` durante el desarrollo para re-ejecutar automáticamente las pruebas cuando los archivos cambien.
 
 ## Inicio Rápido
 
@@ -88,16 +139,86 @@ export class AuthController {
 
 ### BetterAuthModuleOptions
 
-| Opción                      | Tipo      | Predeterminado | Descripción                                 |
-| --------------------------- | --------- | -------------- | ------------------------------------------- |
-| `auth`                      | `Auth`    | **Requerido**  | Instancia de Better Auth                    |
-| `disableExceptionFilter`    | `boolean` | `false`        | Deshabilitar el filtro de excepciones ⚠️    |
-| `disableTrustedOriginsCors` | `boolean` | `false`        | Deshabilitar CORS de orígenes confiables ⚠️ |
-| `disableBodyParser`         | `boolean` | `false`        | Deshabilitar analizador de cuerpo           |
-| `globalPrefix`              | `string`  | `undefined`    | Prefijo global para rutas                   |
-| `disableMiddleware`         | `boolean` | `false`        | Deshabilitar el middleware ⚠️               |
+| Opción                      | Tipo      | Por Defecto     | Descripción                           |
+| --------------------------- | --------- | --------------- | ------------------------------------- |
+| `auth`                      | `Auth`    | **Requerido**   | Instancia de Better Auth              |
+| `disableExceptionFilter`    | `boolean` | `false`         | Deshabilitar filtro de excepciones ⚠️ |
+| `disableTrustedOriginsCors` | `boolean` | `false`         | Deshabilitar CORS de orígenes confiables ⚠️ |
+| `disableBodyParser`         | `boolean` | `false`         | Deshabilitar analizador de cuerpo     |
+| `globalPrefix`              | `string`  | `undefined`     | Prefijo global para rutas             |
+| `disableMiddleware`         | `boolean` | `false`         | Deshabilitar el middleware ⚠️         |
 
-⚠️ **Advertencia de Seguridad**: Las opciones marcadas con ⚠️ tienen implicaciones de seguridad. Solo deshabilita estas características si entiendes los riesgos y tienes mecanismos de protección alternativos.
+⚠️ **Advertencia de Seguridad**: Las opciones marcadas con ⚠️ tienen implicaciones de seguridad. Deshabilite estas características solo si comprende los riesgos y tiene mecanismos de protección alternativos.
+
+## Compatibilidad de Frameworks
+
+Esta biblioteca está diseñada para funcionar perfectamente con los frameworks **Express.js** y **Fastify**:
+
+### Soporte para Express.js
+- Soporte nativo para objetos request/response de Express
+- Integración automática de middleware
+- Compatibilidad completa con el ecosistema Express
+
+### Soporte para Fastify
+- Compatible con Fastify a través del plugin `@fastify/middie`
+- Maneja objetos IncomingMessage en bruto
+- Normalización automática de objetos de solicitud
+
+### Manejo Universal de Solicitudes
+
+El middleware detecta y maneja automáticamente diferentes formatos de objetos de solicitud:
+
+```typescript
+// Funciona con Express y Fastify
+interface UniversalRequest {
+  path?: string;        // Formato Express
+  url?: string;         // Formato Fastify/bruto
+  method?: string;
+  headers?: Record<string, string | string[]>;
+  protocol?: string;
+  originalUrl?: string;
+  body?: any;
+  get?: (header: string) => string | undefined;
+}
+```
+
+## Características de Seguridad
+
+La biblioteca incluye varias medidas de seguridad integradas:
+
+### Protección contra Inyección de Encabezado Host
+
+```typescript
+// Validación automática de encabezados host
+const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
+const host = rawHost && hostRegex.test(rawHost) ? rawHost : 'localhost';
+```
+
+### Validación de Solicitudes
+
+```typescript
+// Todos los métodos del servicio incluyen validación de entrada
+if (!request || typeof request !== 'object') {
+  throw new Error('Objeto de solicitud inválido proporcionado');
+}
+
+if (!request.headers || typeof request.headers !== 'object') {
+  throw new Error('Encabezados de solicitud inválidos proporcionados');
+}
+```
+
+### Tokens de Inyección de Dependencias
+
+La biblioteca usa tokens basados en Symbol para prevenir conflictos de inyección:
+
+```typescript
+// Símbolos disponibles para uso avanzado
+export const BETTER_AUTH_BEFORE_HOOK = Symbol('BETTER_AUTH_BEFORE_HOOK');
+export const BETTER_AUTH_AFTER_HOOK = Symbol('BETTER_AUTH_AFTER_HOOK');
+export const BETTER_AUTH_HOOK = Symbol('BETTER_AUTH_HOOK');
+export const BETTER_AUTH_INSTANCE = Symbol('BETTER_AUTH_INSTANCE');
+export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
+```
 
 ## Configuración Avanzada
 
@@ -196,13 +317,74 @@ BetterAuthModule.forRoot({
 
 ### BetterAuthService
 
-#### Métodos
+#### `getAuth(): Auth`
+Devuelve la instancia de Better Auth configurada.
 
-- `getAuth(): Auth` - Obtener la instancia de Better Auth
-- `getOptions(): BetterAuthModuleOptions` - Obtener opciones del módulo
-- `handleRequest(request: any): Promise<Response>` - Manejar solicitud de autenticación
-- `getSession(request: { headers: Record<string, string | string[]> }): Promise<any>` - Obtener sesión del usuario
-- `signOut(request: { headers: Record<string, string | string[]> }): Promise<any>` - Cerrar sesión del usuario
+```typescript
+const auth = this.betterAuthService.getAuth();
+// Usar la instancia auth para operaciones personalizadas
+```
+
+#### `getOptions(): BetterAuthModuleOptions`
+Devuelve las opciones de configuración del módulo.
+
+```typescript
+const options = this.betterAuthService.getOptions();
+console.log('Prefijo global:', options.globalPrefix);
+```
+
+#### `handleRequest(request: any): Promise<Response>`
+Maneja una solicitud de autenticación. Valida la entrada y procesa la solicitud a través de Better Auth.
+
+**Parámetros:**
+- `request`: Objeto de solicitud (Express, Fastify o formato bruto)
+
+**Validación:**
+- Verifica si el objeto de solicitud es válido
+- Valida la presencia y formato de los encabezados
+- Normaliza diferentes formatos de solicitud
+
+```typescript
+try {
+  const response = await this.betterAuthService.handleRequest(req);
+  // Procesar respuesta
+} catch (error) {
+  // Manejar error de validación o procesamiento
+}
+```
+
+#### `getSession(request: any): Promise<Session | null>`
+Obtiene la sesión del usuario de la solicitud. Incluye validación de entrada.
+
+**Parámetros:**
+- `request`: Objeto de solicitud que contiene cookies/tokens de sesión
+
+**Devuelve:**
+- `Session`: Objeto de sesión si es válida
+- `null`: Si no se encuentra una sesión válida
+
+```typescript
+const session = await this.betterAuthService.getSession(req);
+if (session) {
+  console.log('Usuario conectado:', session.user.id);
+} else {
+  console.log('Usuario no autenticado');
+}
+```
+
+#### `signOut(request: any): Promise<Response>`
+Cierra la sesión del usuario, invalidando su sesión. Incluye validación de entrada.
+
+**Parámetros:**
+- `request`: Objeto de solicitud que contiene información de sesión
+
+**Devuelve:**
+- `Response`: Respuesta de cierre de sesión con cookies limpiadas
+
+```typescript
+const logoutResponse = await this.betterAuthService.signOut(req);
+// La respuesta incluye encabezados para limpiar cookies de sesión
+```
 
 ## Ejemplos
 

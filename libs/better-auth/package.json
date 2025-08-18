@@ -1,6 +1,6 @@
 {
   "name": "@nestjs-libs/better-auth",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Better Auth integration for NestJS",
   "author": "CodeMaster Soluções",
   "license": "MIT",
@@ -42,6 +42,13 @@
       "require": "./dist/cjs/index.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "README.pt-BR.md",
+    "README.es.md",
+    "package.json"
+  ],
   "scripts": {
     "test": "jest",
     "test:cov": "npx c8 --reporter=text --reporter=html --reporter=lcov --include='src/**/*.ts' --exclude='src/**/*.spec.ts' --exclude='src/**/*.d.ts' jest",
