@@ -31,6 +31,9 @@
     "node_modules",
     "changelog.config.js",
     "commitlint.config.js",
-    "**/jest.config.cjs"
+    "**/jest.config.cjs",
+    "scripts/conventional-commits.js",
+    "scripts/version-manager.js",
+    "scripts/simulate-release.js"
   ]
 }

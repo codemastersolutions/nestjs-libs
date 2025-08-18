@@ -30,6 +30,7 @@ export default tseslint.config(
       '**/*.spec.ts',
       '**/*.test.ts',
       '**/jest.config.cjs',
+      'scripts/*.js',
     ],
   },
   eslint.configs.recommended,
