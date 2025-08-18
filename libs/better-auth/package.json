@@ -1,6 +1,6 @@
 {
   "name": "@nestjs-libs/better-auth",
-  "version": "0.0.4",
+  "version": "0.0.1",
   "description": "Better Auth integration for NestJS",
   "author": "CodeMaster Soluções",
   "license": "MIT",
