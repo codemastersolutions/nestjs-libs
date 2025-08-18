@@ -104,6 +104,11 @@ class ConventionalCommitsAnalyzer {
       impact: 'none'
     };
 
+    // Verificar se o commit tem subject válido
+    if (!commit.subject || typeof commit.subject !== 'string') {
+      return result;
+    }
+
     // Regex para conventional commits: type(scope)!: description
     const conventionalRegex = /^(\w+)(\(([^)]+)\))?(!)?: (.+)$/;
     const match = commit.subject.match(conventionalRegex);
