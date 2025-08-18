@@ -224,7 +224,7 @@ jobs:
       - name: Publish to NPM
         if: steps.npm-auth-check.outputs.npm-auth-available == 'true'
         run: |
-          cd libs/${{ matrix.lib }}/dist
+          cd libs/${{ matrix.lib }}
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
