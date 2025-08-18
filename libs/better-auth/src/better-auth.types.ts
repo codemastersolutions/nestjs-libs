@@ -1,5 +1,29 @@
 import { ModuleMetadata, Type } from '@nestjs/common';
-import { Auth } from 'better-auth';
+
+// Define a more flexible Auth type that matches the actual better-auth structure
+export interface Auth {
+  handler: (request: Request) => Promise<Response>;
+  api: {
+    getSession: (context: {
+      headers: HeadersInit;
+      query?: {
+        disableCookieCache?: boolean;
+        disableRefresh?: boolean;
+      };
+      asResponse?: boolean;
+    }) => Promise<{
+      session: Record<string, unknown> | null;
+      user: Record<string, unknown> | null;
+    } | null>;
+    signOut: (context: { headers: HeadersInit }) => Promise<{
+      success: boolean;
+    }>;
+    [key: string]: unknown;
+  };
+  options: Record<string, unknown>;
+  $ERROR_CODES: Record<string, unknown>;
+  $context: Promise<Record<string, unknown>>;
+}
 
 export interface BetterAuthModuleOptions {
   /**

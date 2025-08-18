@@ -4,7 +4,7 @@
   "description": "NestJS Libs",
   "author": "CodeMaster Soluções",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "clean": "rimraf dist libs/*/dist libs/*/node_modules",
     "build": "pnpm clean && pnpm build:all-libs",
