@@ -1,5 +1,5 @@
 import { All, Controller, Req, Res } from '@nestjs/common';
-import { BetterAuthService } from '../../libs/better-auth/src/better-auth.service';
+import { BetterAuthService } from '@cms-nestjs-libs/better-auth';
 
 // Interface for Fastify request/response objects
 interface FastifyRequest {
@@ -49,56 +49,65 @@ export class AuthController {
       // Convert Fastify headers to standard Headers object
       const headers = new Headers();
       Object.entries(request.headers).forEach(([key, value]) => {
-        if (value) {
-          const headerValue = Array.isArray(value)
-            ? value.join(', ')
-            : String(value);
-          headers.append(key, headerValue);
+        if (value !== undefined) {
+          const headerValue = Array.isArray(value) ? value[0] : value;
+          if (headerValue) {
+            headers.set(key, headerValue);
+          }
         }
       });
 
-      // Create Fetch API-compatible request
+      // Create a standard Request object
       const webRequest = new Request(url.toString(), {
         method: request.method,
         headers,
         body:
-          request.method !== 'GET' && request.method !== 'HEAD' && request.body
+          request.method !== 'GET' && request.method !== 'HEAD'
             ? JSON.stringify(request.body)
             : undefined,
       });
 
-      // Process authentication request
+      // Handle the request using Better Auth
       const response = await this.betterAuthService.handleRequest(webRequest);
 
-      if (response) {
-        // Set headers from Better Auth response
-        if (response.headers) {
-          response.headers.forEach((value: string, key: string) => {
-            reply.header(key, value);
-          });
-        }
-
-        // Set status code
-        if (response.status) {
-          reply.status(response.status);
-        }
-
-        // Send response body
-        if (response.body) {
-          const body = await response.text();
-          return reply.send(body);
-        } else {
-          return reply.send();
-        }
-      }
-
-      return reply.status(404).send({ error: 'Not found' });
-    } catch (error: any) {
-      console.error('Authentication Error:', error);
-      return reply.status(500).send({
-        error: 'Internal authentication error',
-        code: 'AUTH_FAILURE',
+      // Set response headers
+      response.headers.forEach((value, key) => {
+        reply.header(key, value);
       });
+
+      // Set status and send response
+      const responseText = await response.text();
+      return reply.status(response.status).send(responseText);
+    } catch (error) {
+      console.error('Auth processing error:', error);
+      return reply.status(500).send({
+        error: 'Internal server error',
+        message:
+          error instanceof Error ? error.message : 'Unknown error occurred',
+      });
+    }
+  }
+
+  /**
+   * Health check endpoint for auth service
+   */
+  @All('api/auth/health')
+  healthCheck() {
+    try {
+      const auth = this.betterAuthService.getAuth();
+      return {
+        status: 'ok',
+        service: 'better-auth',
+        timestamp: new Date().toISOString(),
+        hasAuth: !!auth,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        service: 'better-auth',
+        timestamp: new Date().toISOString(),
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 }
