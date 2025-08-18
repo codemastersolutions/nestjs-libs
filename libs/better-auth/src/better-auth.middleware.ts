@@ -24,6 +24,13 @@ export class BetterAuthMiddleware implements NestMiddleware {
       ? `/${options.globalPrefix}/api/auth`
       : '/api/auth';
 
+    console.log('[BetterAuthMiddleware] Request received:', {
+      path: req.path,
+      url: req.url,
+      method: req.method,
+      authPath,
+    });
+
     // Handle both Express and Fastify request objects
     // In Fastify with middie, we get the raw IncomingMessage object
     // Express provides req.path, Fastify middleware gets req.url on the raw object

@@ -73,6 +73,7 @@ async function bootstrapFastify() {
       logger,
     }),
   );
+
   // swagger(app);
   await app.listen(port, host, () => {
     console.log(

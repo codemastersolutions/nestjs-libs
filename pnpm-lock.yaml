@@ -16,6 +16,9 @@ importers:
       '@cms-nestjs-libs/better-auth':
         specifier: workspace:*
         version: link:libs/better-auth
+      '@fastify/middie':
+        specifier: ^9.0.3
+        version: 9.0.3
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -143,6 +146,9 @@ importers:
 
   libs/better-auth:
     dependencies:
+      '@fastify/middie':
+        specifier: ^9.0.3
+        version: 9.0.3
       '@nestjs/common':
         specifier: ^10.0.0 || ^11.0.0
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)

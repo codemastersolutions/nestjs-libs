@@ -1,17 +1,9 @@
-import {
-  DynamicModule,
-  Global,
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  Provider,
-  RequestMethod,
-} from '@nestjs/common';
+import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 import {
   BETTER_AUTH_INSTANCE,
   BETTER_AUTH_OPTIONS,
 } from './better-auth.constants';
-import { BetterAuthMiddleware } from './better-auth.middleware';
+import { BetterAuthController } from './better-auth.controller';
 import { BetterAuthService } from './better-auth.service';
 import {
   BetterAuthModuleAsyncOptions,
@@ -21,29 +13,11 @@ import {
 
 @Global()
 @Module({})
-export class BetterAuthModule implements NestModule {
-  private static moduleOptions: BetterAuthModuleOptions;
-
-  configure(consumer: MiddlewareConsumer) {
-    // Only apply middleware if not disabled
-    if (!BetterAuthModule.moduleOptions?.disableMiddleware) {
-      consumer
-        .apply(BetterAuthMiddleware)
-        .forRoutes(
-          { path: 'api/auth', method: RequestMethod.ALL },
-          { path: 'api/auth/*path', method: RequestMethod.ALL },
-          { path: '/api/auth', method: RequestMethod.ALL },
-          { path: '/api/auth/*path', method: RequestMethod.ALL },
-        );
-    }
-  }
+export class BetterAuthModule {
   /**
    * Register Better Auth module synchronously
    */
   static forRoot(options: BetterAuthModuleOptions): DynamicModule {
-    // Store options for middleware configuration
-    BetterAuthModule.moduleOptions = options;
-
     const providers: Provider[] = [
       {
         provide: BETTER_AUTH_OPTIONS,
@@ -58,7 +32,8 @@ export class BetterAuthModule implements NestModule {
 
     return {
       module: BetterAuthModule,
-      providers: [...providers, BetterAuthMiddleware],
+      controllers: [BetterAuthController],
+      providers: providers,
       exports: [BetterAuthService, BETTER_AUTH_INSTANCE],
     };
   }
@@ -72,8 +47,6 @@ export class BetterAuthModule implements NestModule {
       {
         provide: BETTER_AUTH_INSTANCE,
         useFactory: (moduleOptions: BetterAuthModuleOptions) => {
-          // Store options for middleware configuration
-          BetterAuthModule.moduleOptions = moduleOptions;
           return moduleOptions.auth;
         },
         inject: [BETTER_AUTH_OPTIONS],
@@ -84,7 +57,8 @@ export class BetterAuthModule implements NestModule {
     return {
       module: BetterAuthModule,
       imports: options.imports || [],
-      providers: [...providers, BetterAuthMiddleware],
+      controllers: [BetterAuthController],
+      providers: providers,
       exports: [BetterAuthService, BETTER_AUTH_INSTANCE],
     };
   }

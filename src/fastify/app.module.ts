@@ -10,6 +10,8 @@ import { AppFastifyService } from './app.service';
     BetterAuthModule.forRootAsync({
       useFactory: () => {
         const auth = betterAuth({
+          baseURL: 'http://localhost:3901',
+          secret: 'better-auth-secret-key-for-testing',
           emailAndPassword: {
             enabled: true,
           },
