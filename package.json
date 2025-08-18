@@ -43,13 +43,15 @@
     "libs:validate": "./scripts/manage-libs.sh validate",
     "libs:package-all": "./scripts/manage-libs.sh package-all",
     "publish:lib": "./scripts/manage-libs.sh publish",
+    "publish:lib:dry-run": "./scripts/manage-libs.sh publish --dry-run",
     "publish:all": "./scripts/manage-libs.sh publish-all",
+    "publish:all:dry-run": "./scripts/manage-libs.sh publish-all --dry-run",
     "commit": "git add . && npx git-cz",
     "commit:push": "git add . && npx git-cz && git push",
     "prepare": "husky"
   },
   "dependencies": {
-    "@nestjs-libs/better-auth": "workspace:*",
+    "@cms-nestjs-libs/better-auth": "workspace:*",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
@@ -128,7 +130,7 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@nestjs-libs/better-auth(|/.*)$": "<rootDir>/libs/better-auth/src/$1"
+      "^@cms-nestjs-libs/better-auth(|/.*)$": "<rootDir>/libs/better-auth/src/$1"
     }
   },
   "pnpm": {

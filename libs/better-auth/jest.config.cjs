@@ -18,6 +18,6 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   testTimeout: 10000,
   moduleNameMapper: {
-    '^@nestjs-libs/better-auth(|/.*)$': '<rootDir>/src/$1',
+    '^@cms-nestjs-libs/better-auth(|/.*)$': '<rootDir>/src/$1',
   },
 };

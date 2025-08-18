@@ -12,9 +12,9 @@ A comprehensive monorepo of NestJS libraries with automated build, testing, and 
 
 ## 📦 Available Libraries
 
-| Library | Description | NPM Package | Status |
-|---------|-------------|-------------|--------|
-| [@nestjs-libs/better-auth](./libs/better-auth) | Better Auth integration for NestJS applications | [![npm](https://img.shields.io/npm/v/@nestjs-libs/better-auth)](https://www.npmjs.com/package/@nestjs-libs/better-auth) | 🚧 In Development |
+| Library                                            | Description                                     | NPM Package                                                                                                                     | Status            |
+| -------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| [@cms-nestjs-libs/better-auth](./libs/better-auth) | Better Auth integration for NestJS applications | [![npm](https://img.shields.io/npm/v/@cms-nestjs-libs/better-auth)](https://www.npmjs.com/package/@cms-nestjs-libs/better-auth) | 🚧 In Development |
 
 ## ✨ Key Features
 
@@ -32,11 +32,11 @@ A comprehensive monorepo of NestJS libraries with automated build, testing, and 
 
 ```bash
 # Install a specific library
-npm install @nestjs-libs/better-auth
+npm install @cms-nestjs-libs/better-auth
 # or
-pnpm add @nestjs-libs/better-auth
+pnpm add @cms-nestjs-libs/better-auth
 # or
-yarn add @nestjs-libs/better-auth
+yarn add @cms-nestjs-libs/better-auth
 ```
 
 ### Development Setup
@@ -63,78 +63,78 @@ pnpm libs:build-all
 
 ### 🏗️ Build Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| `pnpm clean` | Remove all build artifacts | `pnpm clean` |
-| `pnpm build` | Clean and build all libraries | `pnpm build` |
-| `pnpm build:all-libs` | Build all libraries sequentially | `pnpm build:all-libs` |
-| `pnpm build:lib <name>` | Build a specific library (CJS + ESM) | `pnpm build:lib better-auth` |
-| `pnpm build:lib:cjs <name>` | Build CommonJS version of a library | `pnpm build:lib:cjs better-auth` |
-| `pnpm build:lib:esm <name>` | Build ES Modules version of a library | `pnpm build:lib:esm better-auth` |
-| `pnpm build:better-auth` | Build the better-auth library specifically | `pnpm build:better-auth` |
+| Command                     | Description                                | Example                          |
+| --------------------------- | ------------------------------------------ | -------------------------------- |
+| `pnpm clean`                | Remove all build artifacts                 | `pnpm clean`                     |
+| `pnpm build`                | Clean and build all libraries              | `pnpm build`                     |
+| `pnpm build:all-libs`       | Build all libraries sequentially           | `pnpm build:all-libs`            |
+| `pnpm build:lib <name>`     | Build a specific library (CJS + ESM)       | `pnpm build:lib better-auth`     |
+| `pnpm build:lib:cjs <name>` | Build CommonJS version of a library        | `pnpm build:lib:cjs better-auth` |
+| `pnpm build:lib:esm <name>` | Build ES Modules version of a library      | `pnpm build:lib:esm better-auth` |
+| `pnpm build:better-auth`    | Build the better-auth library specifically | `pnpm build:better-auth`         |
 
 ### 🧪 Testing Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| `pnpm test` | Run all tests | `pnpm test` |
-| `pnpm test:watch` | Run tests in watch mode | `pnpm test:watch` |
-| `pnpm test:cov` | Run tests with coverage report | `pnpm test:cov` |
-| `pnpm test:debug` | Run tests in debug mode | `pnpm test:debug` |
-| `pnpm test:e2e` | Run end-to-end tests | `pnpm test:e2e` |
-| `pnpm test:better-auth` | Run tests for better-auth library | `pnpm test:better-auth` |
-| `pnpm test:better-auth:cov` | Run better-auth tests with coverage | `pnpm test:better-auth:cov` |
-| `pnpm test:better-auth:watch` | Run better-auth tests in watch mode | `pnpm test:better-auth:watch` |
-| `pnpm test:express` | Run tests with Express adapter | `pnpm test:express` |
-| `pnpm test:fastify` | Run tests with Fastify adapter | `pnpm test:fastify` |
-| `pnpm test:e2e:express` | Run E2E tests with Express | `pnpm test:e2e:express` |
-| `pnpm test:e2e:fastify` | Run E2E tests with Fastify | `pnpm test:e2e:fastify` |
-| `pnpm test:all-adapters` | Test with all adapters (Express/Fastify) | `pnpm test:all-adapters` |
+| Command                       | Description                              | Example                       |
+| ----------------------------- | ---------------------------------------- | ----------------------------- |
+| `pnpm test`                   | Run all tests                            | `pnpm test`                   |
+| `pnpm test:watch`             | Run tests in watch mode                  | `pnpm test:watch`             |
+| `pnpm test:cov`               | Run tests with coverage report           | `pnpm test:cov`               |
+| `pnpm test:debug`             | Run tests in debug mode                  | `pnpm test:debug`             |
+| `pnpm test:e2e`               | Run end-to-end tests                     | `pnpm test:e2e`               |
+| `pnpm test:better-auth`       | Run tests for better-auth library        | `pnpm test:better-auth`       |
+| `pnpm test:better-auth:cov`   | Run better-auth tests with coverage      | `pnpm test:better-auth:cov`   |
+| `pnpm test:better-auth:watch` | Run better-auth tests in watch mode      | `pnpm test:better-auth:watch` |
+| `pnpm test:express`           | Run tests with Express adapter           | `pnpm test:express`           |
+| `pnpm test:fastify`           | Run tests with Fastify adapter           | `pnpm test:fastify`           |
+| `pnpm test:e2e:express`       | Run E2E tests with Express               | `pnpm test:e2e:express`       |
+| `pnpm test:e2e:fastify`       | Run E2E tests with Fastify               | `pnpm test:e2e:fastify`       |
+| `pnpm test:all-adapters`      | Test with all adapters (Express/Fastify) | `pnpm test:all-adapters`      |
 
 ### 📦 Library Management Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| `pnpm libs:list` | List all available libraries | `pnpm libs:list` |
-| `pnpm libs:build-all` | Build all libraries | `pnpm libs:build-all` |
-| `pnpm libs:test-all` | Test all libraries | `pnpm libs:test-all` |
-| `pnpm libs:clean-all` | Clean all library build artifacts | `pnpm libs:clean-all` |
-| `pnpm libs:status` | Show status of each library | `pnpm libs:status` |
-| `pnpm libs:create <name>` | Create a new library | `pnpm libs:create my-new-lib` |
-| `pnpm libs:validate` | Validate library structure | `pnpm libs:validate` |
-| `pnpm libs:package-all` | Package all libraries for distribution | `pnpm libs:package-all` |
+| Command                   | Description                            | Example                       |
+| ------------------------- | -------------------------------------- | ----------------------------- |
+| `pnpm libs:list`          | List all available libraries           | `pnpm libs:list`              |
+| `pnpm libs:build-all`     | Build all libraries                    | `pnpm libs:build-all`         |
+| `pnpm libs:test-all`      | Test all libraries                     | `pnpm libs:test-all`          |
+| `pnpm libs:clean-all`     | Clean all library build artifacts      | `pnpm libs:clean-all`         |
+| `pnpm libs:status`        | Show status of each library            | `pnpm libs:status`            |
+| `pnpm libs:create <name>` | Create a new library                   | `pnpm libs:create my-new-lib` |
+| `pnpm libs:validate`      | Validate library structure             | `pnpm libs:validate`          |
+| `pnpm libs:package-all`   | Package all libraries for distribution | `pnpm libs:package-all`       |
 
 ### 🚀 Publishing Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
+| Command                               | Description                | Example                                  |
+| ------------------------------------- | -------------------------- | ---------------------------------------- |
 | `pnpm publish:lib <name> [--dry-run]` | Publish a specific library | `pnpm publish:lib better-auth --dry-run` |
-| `pnpm publish:all [--dry-run]` | Publish all libraries | `pnpm publish:all --dry-run` |
+| `pnpm publish:all [--dry-run]`        | Publish all libraries      | `pnpm publish:all --dry-run`             |
 
 > **💡 Tip:** Use `--dry-run` flag to test publishing without actually publishing to npm.
 
 ### 🛠️ Development Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| `pnpm start` | Start the application | `pnpm start` |
-| `pnpm start:dev` | Start in development mode with watch | `pnpm start:dev` |
-| `pnpm start:debug` | Start in debug mode | `pnpm start:debug` |
-| `pnpm start:prod` | Start in production mode | `pnpm start:prod` |
-| `pnpm format` | Format code with Prettier | `pnpm format` |
-| `pnpm lint` | Lint and fix code with ESLint | `pnpm lint` |
+| Command            | Description                          | Example            |
+| ------------------ | ------------------------------------ | ------------------ |
+| `pnpm start`       | Start the application                | `pnpm start`       |
+| `pnpm start:dev`   | Start in development mode with watch | `pnpm start:dev`   |
+| `pnpm start:debug` | Start in debug mode                  | `pnpm start:debug` |
+| `pnpm start:prod`  | Start in production mode             | `pnpm start:prod`  |
+| `pnpm format`      | Format code with Prettier            | `pnpm format`      |
+| `pnpm lint`        | Lint and fix code with ESLint        | `pnpm lint`        |
 
 ### 📝 Git & Commit Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
-| `pnpm commit` | Interactive commit with Conventional Commits | `pnpm commit` |
-| `pnpm commit:push` | Commit and push changes | `pnpm commit:push` |
+| Command            | Description                                  | Example            |
+| ------------------ | -------------------------------------------- | ------------------ |
+| `pnpm commit`      | Interactive commit with Conventional Commits | `pnpm commit`      |
+| `pnpm commit:push` | Commit and push changes                      | `pnpm commit:push` |
 
 ### 🔧 Utility Scripts
 
-| Command | Description | Example |
-|---------|-------------|----------|
+| Command        | Description           | Example        |
+| -------------- | --------------------- | -------------- |
 | `pnpm prepare` | Setup Husky git hooks | `pnpm prepare` |
 
 ## 🤖 Automated System
@@ -157,6 +157,7 @@ pnpm libs:build-all
 ## 🤝 Contributing
 
 See our contributing guides:
+
 - [🇺🇸 English](./CONTRIBUTING.md)
 - [🇧🇷 Português](./CONTRIBUTING.pt-BR.md)
 - [🇪🇸 Español](./CONTRIBUTING.es.md)

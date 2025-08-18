@@ -47,7 +47,7 @@ jobs:
           echo "PR merged: ${{ github.event.pull_request.merged }}"
           echo "Base ref: ${{ github.event.pull_request.base.ref }}"
           echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-          
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual trigger - build all libs
             changed_libs='${{ steps.libs.outputs.all-libs }}'
@@ -92,7 +92,7 @@ jobs:
           echo "Changed libs from detect-changes: ${{ needs.detect-changes.outputs.changed-libs }}"
           echo "Current library: ${{ matrix.lib }}"
           echo "All libs: ${{ needs.detect-changes.outputs.all-libs }}"
-      
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -125,10 +125,10 @@ jobs:
         run: |
           version_type="${{ github.event.inputs.version_type || 'patch' }}"
           current="${{ steps.current-version.outputs.current-version }}"
-          
+
           # Parse semantic version
           IFS='.' read -r major minor patch <<< "$current"
-          
+
           case $version_type in
             major)
               major=$((major + 1))
@@ -143,7 +143,7 @@ jobs:
               patch=$((patch + 1))
               ;;
           esac
-          
+
           new_version="$major.$minor.$patch"
           echo "new-version=$new_version" >> $GITHUB_OUTPUT
           echo "New version of ${{ matrix.lib }}: $new_version"
@@ -157,13 +157,13 @@ jobs:
         run: |
           # Clean previous builds
           pnpm clean
-          
+
           # Build CJS
           if [ -f "libs/${{ matrix.lib }}/tsconfig.build.cjs.json" ]; then
             echo "Building CJS for ${{ matrix.lib }}..."
             tsc -p libs/${{ matrix.lib }}/tsconfig.build.cjs.json
           fi
-          
+
           # Build ESM
           if [ -f "libs/${{ matrix.lib }}/tsconfig.build.esm.json" ]; then
             echo "Building ESM for ${{ matrix.lib }}..."
@@ -178,33 +178,33 @@ jobs:
       - name: Create distribution package
         run: |
           cd libs/${{ matrix.lib }}
-          
+
           # Create a clean package for distribution
           mkdir -p ../../dist-packages/${{ matrix.lib }}
-          
+
           # Copy package.json and other necessary files
           cp package.json ../../dist-packages/${{ matrix.lib }}/
-          
+
           # Copy README if exists
           if [ -f "README.md" ]; then
             cp README.md ../../dist-packages/${{ matrix.lib }}/
           fi
-          
+
           # Copy LICENSE if exists
           if [ -f "LICENSE" ]; then
             cp LICENSE ../../dist-packages/${{ matrix.lib }}/
           fi
-          
+
           # Copy built files
           if [ -d "dist" ]; then
             cp -r dist ../../dist-packages/${{ matrix.lib }}/
           fi
-          
+
           cd ../../dist-packages/${{ matrix.lib }}
-          
+
           # Create tarball
           npm pack
-          
+
           # Move tarball to root for artifact upload
           mv *.tgz ../../${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
 
@@ -234,28 +234,28 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
-          name: "${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}"
+          name: '${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}'
           body: |
             ## 📦 ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
-            
+
             ### 🚀 Installation
             ```bash
-            npm install @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            npm install @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
             # or
-            pnpm add @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            pnpm add @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
             # or
-            yarn add @nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
+            yarn add @cms-nestjs-libs/${{ matrix.lib }}@${{ steps.new-version.outputs.new-version }}
             ```
-            
+
             ### 📋 Changes
             This release includes the latest changes from the `libs/${{ matrix.lib }}` directory.
-            
+
             ### 📁 Artifacts
             - `${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz` - Complete package ready for installation
-            - 📦 **NPM Package**: Available at [npmjs.com/package/@nestjs-libs/${{ matrix.lib }}](https://www.npmjs.com/package/@nestjs-libs/${{ matrix.lib }})
-            
+            - 📦 **NPM Package**: Available at [npmjs.com/package/@cms-nestjs-libs/${{ matrix.lib }}](https://www.npmjs.com/package/@cms-nestjs-libs/${{ matrix.lib }})
+
             ---
-            
+
             **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ matrix.lib }}-v${{ steps.current-version.outputs.current-version }}...${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
           files: |
             ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}.tgz
@@ -272,7 +272,7 @@ jobs:
         run: |
           echo "## 🎉 Build and Release Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.detect-changes.outputs.changed-libs }}" = "[]" ]; then
             echo "ℹ️ No libraries were changed or built in this run." >> $GITHUB_STEP_SUMMARY
           else

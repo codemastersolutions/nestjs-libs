@@ -70,12 +70,12 @@ show_usage() {
 list_libs() {
     log_header "📋 Available Libraries"
     echo ""
-    
+
     if [ ! -d "libs" ]; then
         log_error "libs/ directory not found"
         return 1
     fi
-    
+
     local count=0
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
@@ -93,7 +93,7 @@ list_libs() {
             echo ""
         fi
     done
-    
+
     if [ $count -eq 0 ]; then
         log_warning "No libraries found in libs/ directory"
     else
@@ -106,17 +106,17 @@ build_all() {
     local version_type="${1:-patch}"
     log_header "🏗️  Building All Libraries ($version_type)"
     echo ""
-    
+
     local success_count=0
     local total_count=0
-    
+
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
             lib_name=$(basename "$lib")
             total_count=$((total_count + 1))
-            
+
             log_info "Building $lib_name..."
-            
+
             if ./scripts/build-lib.sh "$lib_name" "$version_type"; then
                 success_count=$((success_count + 1))
                 log_success "$lib_name built successfully"
@@ -126,7 +126,7 @@ build_all() {
             echo ""
         fi
     done
-    
+
     log_header "📊 Build Summary"
     echo "✅ Successful: $success_count/$total_count"
     if [ $success_count -eq $total_count ]; then
@@ -140,17 +140,17 @@ build_all() {
 test_all() {
     log_header "🧪 Testing All Libraries"
     echo ""
-    
+
     local success_count=0
     local total_count=0
-    
+
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
             lib_name=$(basename "$lib")
             total_count=$((total_count + 1))
-            
+
             log_info "Testing $lib_name..."
-            
+
             if pnpm test -- --testPathPatterns="$lib_name" --silent; then
                 success_count=$((success_count + 1))
                 log_success "$lib_name tests passed"
@@ -159,7 +159,7 @@ test_all() {
             fi
         fi
     done
-    
+
     echo ""
     log_header "📊 Test Summary"
     echo "✅ Passed: $success_count/$total_count"
@@ -173,14 +173,14 @@ test_all() {
 # Clean all build artifacts
 clean_all() {
     log_header "🧹 Cleaning All Build Artifacts"
-    
+
     log_info "Cleaning with pnpm..."
     pnpm clean
-    
+
     log_info "Removing distribution packages..."
     rm -rf dist-packages/
     rm -f *.tgz
-    
+
     log_success "All build artifacts cleaned"
 }
 
@@ -188,46 +188,46 @@ clean_all() {
 show_status() {
     log_header "📊 Libraries Status"
     echo ""
-    
+
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
             lib_name=$(basename "$lib")
             log_lib "$lib_name"
-            
+
             # Check package.json
             if [ -f "$lib/package.json" ]; then
                 echo "  ✅ package.json: $(jq -r '.version' "$lib/package.json")"
             else
                 echo "  ❌ package.json: Missing"
             fi
-            
+
             # Check TypeScript configs
             if [ -f "$lib/tsconfig.build.cjs.json" ]; then
                 echo "  ✅ CJS config: Present"
             else
                 echo "  ⚠️  CJS config: Missing"
             fi
-            
+
             if [ -f "$lib/tsconfig.build.esm.json" ]; then
                 echo "  ✅ ESM config: Present"
             else
                 echo "  ⚠️  ESM config: Missing"
             fi
-            
+
             # Check source files
             if [ -f "$lib/src/index.ts" ]; then
                 echo "  ✅ Entry point: src/index.ts"
             else
                 echo "  ❌ Entry point: Missing src/index.ts"
             fi
-            
+
             # Check build output
             if [ -d "$lib/dist" ]; then
                 echo "  ✅ Build output: Present"
             else
                 echo "  ⚠️  Build output: Not built"
             fi
-            
+
             echo ""
         fi
     done
@@ -236,29 +236,29 @@ show_status() {
 # Create new library template
 create_lib() {
     local lib_name="$1"
-    
+
     if [ -z "$lib_name" ]; then
         log_error "Library name is required"
         echo "Usage: $0 create <lib-name>"
         return 1
     fi
-    
+
     local lib_path="libs/$lib_name"
-    
+
     if [ -d "$lib_path" ]; then
         log_error "Library '$lib_name' already exists"
         return 1
     fi
-    
+
     log_header "🆕 Creating New Library: $lib_name"
-    
+
     # Create directory structure
     mkdir -p "$lib_path/src"
-    
+
     # Create package.json
     cat > "$lib_path/package.json" << EOF
 {
-  "name": "@nestjs-libs/$lib_name",
+  "name": "@cms-nestjs-libs/$lib_name",
   "version": "0.0.1",
   "description": "$lib_name integration for NestJS",
   "author": "CodeMaster Soluções",
@@ -297,7 +297,7 @@ create_lib() {
   }
 }
 EOF
-    
+
     # Create TypeScript config for CJS build
     cat > "$lib_path/tsconfig.build.cjs.json" << EOF
 {
@@ -310,7 +310,7 @@ EOF
   "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
 }
 EOF
-    
+
     cat > "$lib_path/tsconfig.build.esm.json" << EOF
 {
   "extends": "./tsconfig.lib.json",
@@ -342,7 +342,7 @@ EOF
   ]
 }
 EOF
-    
+
     cat > "$lib_path/tsconfig.lib.json" << EOF
 {
   "extends": "../../tsconfig.json",
@@ -354,18 +354,18 @@ EOF
   "exclude": ["**/*.spec.ts", "**/*.test.ts"]
 }
 EOF
-    
+
     # Create source files
     cat > "$lib_path/src/index.ts" << EOF
 export * from './$lib_name.module';
 export * from './$lib_name.service';
 export * from './$lib_name.types';
 EOF
-    
+
     # Convert kebab-case to PascalCase for class names
     lib_name_camel=$(echo "$lib_name" | sed 's/-\([a-z]\)/\U\1/g')
     lib_name_capitalized="$(echo "${lib_name_camel:0:1}" | tr '[:lower:]' '[:upper:]')${lib_name_camel:1}"
-    
+
     cat > "$lib_path/src/$lib_name.module.ts" << EOF
 import { Module } from '@nestjs/common';
 import { ${lib_name_capitalized}Service } from './$lib_name.service';
@@ -376,7 +376,7 @@ import { ${lib_name_capitalized}Service } from './$lib_name.service';
 })
 export class ${lib_name_capitalized}Module {}
 EOF
-    
+
     cat > "$lib_path/src/$lib_name.service.ts" << EOF
 import { Injectable } from '@nestjs/common';
 
@@ -387,7 +387,7 @@ export class ${lib_name_capitalized}Service {
   }
 }
 EOF
-    
+
     cat > "$lib_path/src/$lib_name.types.ts" << EOF
 // Types and interfaces for $lib_name
 
@@ -395,7 +395,7 @@ export interface ${lib_name_capitalized}Config {
   // Add configuration options here
 }
 EOF
-    
+
     # Create test files
     cat > "$lib_path/src/$lib_name.service.spec.ts" << EOF
 import { Test, TestingModule } from '@nestjs/testing';
@@ -421,28 +421,28 @@ describe('${lib_name_capitalized}Service', () => {
   });
 });
 EOF
-    
+
     # Create README
     cat > "$lib_path/README.md" << EOF
-# @nestjs-libs/$lib_name
+# @cms-nestjs-libs/$lib_name
 
 $lib_name integration for NestJS applications.
 
 ## Installation
 
 \`\`\`bash
-npm install @nestjs-libs/$lib_name
+npm install @cms-nestjs-libs/$lib_name
 # or
-pnpm add @nestjs-libs/$lib_name
+pnpm add @cms-nestjs-libs/$lib_name
 # or
-yarn add @nestjs-libs/$lib_name
+yarn add @cms-nestjs-libs/$lib_name
 \`\`\`
 
 ## Usage
 
 \`\`\`typescript
 import { Module } from '@nestjs/common';
-import { ${lib_name_capitalized}Module } from '@nestjs-libs/$lib_name';
+import { ${lib_name_capitalized}Module } from '@cms-nestjs-libs/$lib_name';
 
 @Module({
   imports: [${lib_name_capitalized}Module],
@@ -454,7 +454,7 @@ export class AppModule {}
 
 MIT
 EOF
-    
+
     log_success "Library '$lib_name' created successfully!"
     echo ""
     log_info "Next steps:"
@@ -467,25 +467,25 @@ EOF
 # Validate library structure
 validate_lib() {
     local lib_name="$1"
-    
+
     if [ -z "$lib_name" ]; then
         log_error "Library name is required"
         echo "Usage: $0 validate <lib-name>"
         return 1
     fi
-    
+
     local lib_path="libs/$lib_name"
-    
+
     if [ ! -d "$lib_path" ]; then
         log_error "Library '$lib_name' not found"
         return 1
     fi
-    
+
     log_header "🔍 Validating Library: $lib_name"
     echo ""
-    
+
     local issues=0
-    
+
     # Check required files
     local required_files=(
         "package.json"
@@ -493,7 +493,7 @@ validate_lib() {
         "tsconfig.build.cjs.json"
         "tsconfig.build.esm.json"
     )
-    
+
     for file in "${required_files[@]}"; do
         if [ -f "$lib_path/$file" ]; then
             log_success "$file exists"
@@ -502,7 +502,7 @@ validate_lib() {
             issues=$((issues + 1))
         fi
     done
-    
+
     # Validate package.json
     if [ -f "$lib_path/package.json" ]; then
         if jq -e '.name' "$lib_path/package.json" > /dev/null; then
@@ -511,7 +511,7 @@ validate_lib() {
             log_error "package.json missing name field"
             issues=$((issues + 1))
         fi
-        
+
         if jq -e '.version' "$lib_path/package.json" > /dev/null; then
             log_success "package.json has valid version"
         else
@@ -519,7 +519,7 @@ validate_lib() {
             issues=$((issues + 1))
         fi
     fi
-    
+
     echo ""
     if [ $issues -eq 0 ]; then
         log_success "✅ Library '$lib_name' is valid!"
@@ -533,39 +533,39 @@ validate_lib() {
 package_all() {
     log_header "📦 Packaging All Libraries"
     echo ""
-    
+
     # Clean previous packages
     rm -rf dist-packages/
     rm -f *.tgz
-    
+
     local success_count=0
     local total_count=0
-    
+
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
             lib_name=$(basename "$lib")
             total_count=$((total_count + 1))
-            
+
             log_info "Packaging $lib_name..."
-            
+
             if [ -f "$lib/package.json" ] && [ -d "$lib/dist" ]; then
                 version=$(jq -r '.version' "$lib/package.json")
-                
+
                 # Create package directory
                 mkdir -p "dist-packages/$lib_name"
-                
+
                 # Copy files
                 cp "$lib/package.json" "dist-packages/$lib_name/"
                 [ -f "$lib/README.md" ] && cp "$lib/README.md" "dist-packages/$lib_name/"
                 [ -f "$lib/LICENSE" ] && cp "$lib/LICENSE" "dist-packages/$lib_name/"
                 cp -r "$lib/dist" "dist-packages/$lib_name/"
-                
+
                 # Create tarball
                 cd "dist-packages/$lib_name"
                 npm pack
                 mv *.tgz "../../$lib_name-v$version.tgz"
                 cd ../..
-                
+
                 success_count=$((success_count + 1))
                 log_success "$lib_name packaged as $lib_name-v$version.tgz"
             else
@@ -573,7 +573,7 @@ package_all() {
             fi
         fi
     done
-    
+
     echo ""
     log_header "📊 Packaging Summary"
     echo "✅ Packaged: $success_count/$total_count"
@@ -586,65 +586,66 @@ package_all() {
 publish_lib() {
     local lib_name="$1"
     local dry_run="$2"
-    
+
     if [ -z "$lib_name" ]; then
         log_error "Library name is required"
         echo "Usage: $0 publish <library-name> [--dry-run]"
         return 1
     fi
-    
+
     local lib_path="libs/$lib_name"
-    
+
     if [ ! -d "$lib_path" ]; then
         log_error "Library '$lib_name' not found in libs/ directory"
         return 1
     fi
-    
+
     log_header "📦 Publishing Library: $lib_name"
     echo ""
-    
+
     # Validate library structure
     log_info "Validating library structure..."
     if ! ./scripts/manage-libs.sh validate "$lib_name" > /dev/null 2>&1; then
         log_error "Library validation failed. Please fix issues before publishing."
         return 1
     fi
-    
+
     # Build the library
     log_info "Building library..."
     if ! pnpm build:lib "$lib_name" > /dev/null 2>&1; then
         log_error "Build failed. Please fix build issues before publishing."
         return 1
     fi
-    
+
     # Run tests
     log_info "Running tests..."
     if ! pnpm test:$lib_name --silent > /dev/null 2>&1; then
         log_error "Tests failed. Please fix test issues before publishing."
         return 1
     fi
-    
+
     # Check if already published
     local version=$(jq -r '.version' "$lib_path/package.json")
     local package_name=$(jq -r '.name' "$lib_path/package.json")
-    
+
     log_info "Checking if version $version is already published..."
     if npm view "$package_name@$version" version > /dev/null 2>&1; then
         log_error "Version $version is already published. Please update the version in package.json."
         return 1
     fi
-    
+
     # Publish
-    local publish_cmd="npm publish --access public"
+    local publish_cmd="npm publish"
     if [ "$dry_run" = "--dry-run" ]; then
         publish_cmd="$publish_cmd --dry-run"
         log_info "Publishing $package_name@$version (dry-run)..."
     else
+        publish_cmd="$publish_cmd --access public"
         log_info "Publishing $package_name@$version..."
     fi
-    
+
     cd "$lib_path"
-    
+
     if $publish_cmd; then
         cd ../..
         if [ "$dry_run" = "--dry-run" ]; then
@@ -663,21 +664,21 @@ publish_lib() {
 # Publish all libraries
 publish_all() {
     local dry_run="$1"
-    
+
     log_header "📦 Publishing All Libraries"
     echo ""
-    
+
     local success_count=0
     local total_count=0
     local failed_libs=()
-    
+
     for lib in libs/*/; do
         if [ -d "$lib" ]; then
             lib_name=$(basename "$lib")
             total_count=$((total_count + 1))
-            
+
             log_info "Publishing $lib_name..."
-            
+
             if publish_lib "$lib_name" "$dry_run"; then
                 success_count=$((success_count + 1))
             else
@@ -686,17 +687,17 @@ publish_all() {
             echo ""
         fi
     done
-    
+
     log_header "📊 Publishing Summary"
     echo "✅ Published: $success_count/$total_count"
-    
+
     if [ ${#failed_libs[@]} -gt 0 ]; then
         log_warning "Failed libraries:"
         for lib in "${failed_libs[@]}"; do
             echo "  - $lib"
         done
     fi
-    
+
     if [ $success_count -eq $total_count ]; then
         if [ "$dry_run" = "--dry-run" ]; then
             log_success "All libraries would be published successfully! (dry-run)"

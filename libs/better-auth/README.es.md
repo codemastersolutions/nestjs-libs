@@ -1,4 +1,4 @@
-# @nestjs-libs/better-auth
+# @cms-nestjs-libs/better-auth
 
 **📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
 
@@ -38,11 +38,11 @@ Nuestro objetivo es proporcionar a la comunidad NestJS una solución de autentic
 ## Instalación
 
 ```bash
-npm install @nestjs-libs/better-auth better-auth
+npm install @cms-nestjs-libs/better-auth better-auth
 # o
-yarn add @nestjs-libs/better-auth better-auth
+yarn add @cms-nestjs-libs/better-auth better-auth
 # o
-pnpm add @nestjs-libs/better-auth better-auth
+pnpm add @cms-nestjs-libs/better-auth better-auth
 ```
 
 ## Scripts Disponibles
@@ -51,16 +51,17 @@ La biblioteca incluye varios scripts npm para desarrollo y pruebas:
 
 ### 🧪 Scripts de Pruebas
 
-| Comando | Descripción | Ejemplo |
-|---------|-------------|----------|
-| `npm test` | Ejecuta todas las pruebas usando Jest | `npm test` |
-| `npm run test:watch` | Ejecuta pruebas en modo watch para desarrollo | `npm run test:watch` |
-| `npm run test:cov` | Ejecuta pruebas con reporte de cobertura (texto, HTML, LCOV) | `npm run test:cov` |
-| `npm run test:debug` | Ejecuta pruebas en modo debug con Node.js inspector | `npm run test:debug` |
+| Comando              | Descripción                                                  | Ejemplo              |
+| -------------------- | ------------------------------------------------------------ | -------------------- |
+| `npm test`           | Ejecuta todas las pruebas usando Jest                        | `npm test`           |
+| `npm run test:watch` | Ejecuta pruebas en modo watch para desarrollo                | `npm run test:watch` |
+| `npm run test:cov`   | Ejecuta pruebas con reporte de cobertura (texto, HTML, LCOV) | `npm run test:cov`   |
+| `npm run test:debug` | Ejecuta pruebas en modo debug con Node.js inspector          | `npm run test:debug` |
 
 ### 📊 Reportes de Cobertura
 
 Al ejecutar `npm run test:cov`, se generan reportes de cobertura en múltiples formatos:
+
 - **Texto**: Salida en consola con resumen de cobertura
 - **HTML**: Reporte HTML interactivo en el directorio `coverage/`
 - **LCOV**: Formato legible por máquina para integración CI/CD
@@ -89,7 +90,7 @@ npm run test:debug
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { BetterAuthModule } from '@nestjs-libs/better-auth';
+import { BetterAuthModule } from '@cms-nestjs-libs/better-auth';
 import { betterAuth } from 'better-auth';
 
 @Module({
@@ -114,7 +115,7 @@ export class AppModule {}
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { BetterAuthService } from '@nestjs-libs/better-auth';
+import { BetterAuthService } from '@cms-nestjs-libs/better-auth';
 
 @Injectable()
 export class AuthController {
@@ -139,14 +140,14 @@ export class AuthController {
 
 ### BetterAuthModuleOptions
 
-| Opción                      | Tipo      | Por Defecto     | Descripción                           |
-| --------------------------- | --------- | --------------- | ------------------------------------- |
-| `auth`                      | `Auth`    | **Requerido**   | Instancia de Better Auth              |
-| `disableExceptionFilter`    | `boolean` | `false`         | Deshabilitar filtro de excepciones ⚠️ |
-| `disableTrustedOriginsCors` | `boolean` | `false`         | Deshabilitar CORS de orígenes confiables ⚠️ |
-| `disableBodyParser`         | `boolean` | `false`         | Deshabilitar analizador de cuerpo     |
-| `globalPrefix`              | `string`  | `undefined`     | Prefijo global para rutas             |
-| `disableMiddleware`         | `boolean` | `false`         | Deshabilitar el middleware ⚠️         |
+| Opción                      | Tipo      | Por Defecto   | Descripción                                 |
+| --------------------------- | --------- | ------------- | ------------------------------------------- |
+| `auth`                      | `Auth`    | **Requerido** | Instancia de Better Auth                    |
+| `disableExceptionFilter`    | `boolean` | `false`       | Deshabilitar filtro de excepciones ⚠️       |
+| `disableTrustedOriginsCors` | `boolean` | `false`       | Deshabilitar CORS de orígenes confiables ⚠️ |
+| `disableBodyParser`         | `boolean` | `false`       | Deshabilitar analizador de cuerpo           |
+| `globalPrefix`              | `string`  | `undefined`   | Prefijo global para rutas                   |
+| `disableMiddleware`         | `boolean` | `false`       | Deshabilitar el middleware ⚠️               |
 
 ⚠️ **Advertencia de Seguridad**: Las opciones marcadas con ⚠️ tienen implicaciones de seguridad. Deshabilite estas características solo si comprende los riesgos y tiene mecanismos de protección alternativos.
 
@@ -155,11 +156,13 @@ export class AuthController {
 Esta biblioteca está diseñada para funcionar perfectamente con los frameworks **Express.js** y **Fastify**:
 
 ### Soporte para Express.js
+
 - Soporte nativo para objetos request/response de Express
 - Integración automática de middleware
 - Compatibilidad completa con el ecosistema Express
 
 ### Soporte para Fastify
+
 - Compatible con Fastify a través del plugin `@fastify/middie`
 - Maneja objetos IncomingMessage en bruto
 - Normalización automática de objetos de solicitud
@@ -171,8 +174,8 @@ El middleware detecta y maneja automáticamente diferentes formatos de objetos d
 ```typescript
 // Funciona con Express y Fastify
 interface UniversalRequest {
-  path?: string;        // Formato Express
-  url?: string;         // Formato Fastify/bruto
+  path?: string; // Formato Express
+  url?: string; // Formato Fastify/bruto
   method?: string;
   headers?: Record<string, string | string[]>;
   protocol?: string;
@@ -227,7 +230,7 @@ export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
 ```typescript
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { BetterAuthModule } from '@nestjs-libs/better-auth';
+import { BetterAuthModule } from '@cms-nestjs-libs/better-auth';
 import { betterAuth } from 'better-auth';
 
 @Module({
@@ -264,7 +267,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   BetterAuthOptionsFactory,
   BetterAuthModuleOptions,
-} from '@nestjs-libs/better-auth';
+} from '@cms-nestjs-libs/better-auth';
 import { betterAuth } from 'better-auth';
 
 @Injectable()
@@ -318,6 +321,7 @@ BetterAuthModule.forRoot({
 ### BetterAuthService
 
 #### `getAuth(): Auth`
+
 Devuelve la instancia de Better Auth configurada.
 
 ```typescript
@@ -326,6 +330,7 @@ const auth = this.betterAuthService.getAuth();
 ```
 
 #### `getOptions(): BetterAuthModuleOptions`
+
 Devuelve las opciones de configuración del módulo.
 
 ```typescript
@@ -334,12 +339,15 @@ console.log('Prefijo global:', options.globalPrefix);
 ```
 
 #### `handleRequest(request: any): Promise<Response>`
+
 Maneja una solicitud de autenticación. Valida la entrada y procesa la solicitud a través de Better Auth.
 
 **Parámetros:**
+
 - `request`: Objeto de solicitud (Express, Fastify o formato bruto)
 
 **Validación:**
+
 - Verifica si el objeto de solicitud es válido
 - Valida la presencia y formato de los encabezados
 - Normaliza diferentes formatos de solicitud
@@ -354,12 +362,15 @@ try {
 ```
 
 #### `getSession(request: any): Promise<Session | null>`
+
 Obtiene la sesión del usuario de la solicitud. Incluye validación de entrada.
 
 **Parámetros:**
+
 - `request`: Objeto de solicitud que contiene cookies/tokens de sesión
 
 **Devuelve:**
+
 - `Session`: Objeto de sesión si es válida
 - `null`: Si no se encuentra una sesión válida
 
@@ -373,12 +384,15 @@ if (session) {
 ```
 
 #### `signOut(request: any): Promise<Response>`
+
 Cierra la sesión del usuario, invalidando su sesión. Incluye validación de entrada.
 
 **Parámetros:**
+
 - `request`: Objeto de solicitud que contiene información de sesión
 
 **Devuelve:**
+
 - `Response`: Respuesta de cierre de sesión con cookies limpiadas
 
 ```typescript
@@ -412,7 +426,7 @@ bootstrap();
 
 ```typescript
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { BetterAuthService } from '@nestjs-libs/better-auth';
+import { BetterAuthService } from '@cms-nestjs-libs/better-auth';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -443,7 +457,7 @@ export class AuthGuard implements CanActivate {
 
 ### Problemas Comunes
 
-1. **Módulo no encontrado**: Asegúrate de que tanto `@nestjs-libs/better-auth` como `better-auth` estén instalados
+1. **Módulo no encontrado**: Asegúrate de que tanto `@cms-nestjs-libs/better-auth` como `better-auth` estén instalados
 2. **Conexión de base de datos**: Verifica tu configuración de base de datos
 3. **Errores de CORS**: Revisa tu configuración de CORS
 4. **Conflictos de middleware**: Asegúrate de que no haya middleware conflictivo en las rutas de autenticación

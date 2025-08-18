@@ -5,6 +5,7 @@ Sistema automatizado para build, versionamento e release de todas as bibliotecas
 ## 📋 Visão Geral
 
 O sistema detecta automaticamente:
+
 - ✅ Todas as libs na pasta `libs/`
 - 🔍 Mudanças em cada lib
 - 📦 Faz build apenas das libs modificadas
@@ -15,6 +16,7 @@ O sistema detecta automaticamente:
 ## 🎯 Triggers
 
 ### Automático
+
 ```yaml
 # Dispara quando um pull request é merged na main com mudanças em libs/
 pull_request:
@@ -24,6 +26,7 @@ pull_request:
 ```
 
 ### Manual
+
 ```yaml
 # Permite execução manual com escolha do tipo de versão
 workflow_dispatch:
@@ -34,11 +37,13 @@ workflow_dispatch:
 ## 🔄 Fluxo de Trabalho
 
 ### 1. Detecção de Mudanças
+
 - 🔍 Escaneia pasta `libs/` para encontrar todas as bibliotecas
 - 📊 Compara commits para detectar libs modificadas
 - 🎯 Execução manual processa todas as libs
 
 ### 2. Build e Release (Para cada lib)
+
 - 📥 Checkout do código
 - 🛠️ Setup Node.js + pnpm
 - 📦 Instalação de dependências
@@ -66,12 +71,13 @@ The release process includes:
 
 Each library is automatically published to NPM registry as a separate package:
 
-- **Package Scope**: `@nestjs-libs`
-- **Naming**: `@nestjs-libs/{library-name}`
+- **Package Scope**: `@cms-nestjs-libs`
+- **Naming**: `@cms-nestjs-libs/{library-name}`
 - **Access**: Public packages
 - **Registry**: https://registry.npmjs.org
 
 ### Requirements
+
 - NPM token configured in GitHub secrets (`NPM_TOKEN`)
 - Proper package.json configuration in each library
 - Build artifacts (CJS and ESM) available
@@ -81,6 +87,7 @@ See [NPM Publishing Guide](./NPM_PUBLISHING.md) for detailed setup instructions.
 ## 📦 Estrutura de Artefatos
 
 Cada release contém:
+
 ```
 {lib-name}-v{version}.tgz
 ├── package.json          # Versão atualizada
@@ -102,15 +109,16 @@ other-lib-v2.1.0
 
 ## 📋 Versionamento Semântico
 
-| Tipo | Quando usar | Exemplo |
-|------|-------------|----------|
-| `patch` | Bug fixes, pequenas correções | `1.0.0` → `1.0.1` |
+| Tipo    | Quando usar                          | Exemplo           |
+| ------- | ------------------------------------ | ----------------- |
+| `patch` | Bug fixes, pequenas correções        | `1.0.0` → `1.0.1` |
 | `minor` | Novas features, mudanças compatíveis | `1.0.0` → `1.1.0` |
-| `major` | Breaking changes | `1.0.0` → `2.0.0` |
+| `major` | Breaking changes                     | `1.0.0` → `2.0.0` |
 
 ## 🛠️ Scripts Locais
 
 ### Build de todas as libs
+
 ```bash
 pnpm build
 # ou
@@ -118,11 +126,13 @@ pnpm build:all-libs
 ```
 
 ### Build de uma lib específica
+
 ```bash
 pnpm build:lib better-auth
 ```
 
 ### Build por tipo
+
 ```bash
 # Apenas CJS
 pnpm build:lib:cjs better-auth
@@ -134,6 +144,7 @@ pnpm build:lib:esm better-auth
 ## 🆕 Adicionando Nova Biblioteca
 
 ### 1. Estrutura Mínima
+
 ```
 libs/nova-lib/
 ├── package.json                    # ✅ Obrigatório
@@ -146,9 +157,10 @@ libs/nova-lib/
 ```
 
 ### 2. package.json Mínimo
+
 ```json
 {
-  "name": "@nestjs-libs/nova-lib",
+  "name": "@cms-nestjs-libs/nova-lib",
   "version": "0.0.1",
   "description": "Descrição da nova lib",
   "main": "./dist/cjs/index.js",
@@ -165,6 +177,7 @@ libs/nova-lib/
 ### 3. Configuração TypeScript
 
 **tsconfig.build.cjs.json:**
+
 ```json
 {
   "extends": "../../tsconfig.build.json",
@@ -179,6 +192,7 @@ libs/nova-lib/
 ```
 
 **tsconfig.build.esm.json:**
+
 ```json
 {
   "extends": "../../tsconfig.build.json",
@@ -195,6 +209,7 @@ libs/nova-lib/
 ## 🔧 Configuração Automática
 
 O sistema é **completamente automático**:
+
 - ✅ Detecta novas libs automaticamente
 - ✅ Não requer modificação do workflow
 - ✅ Funciona com qualquer estrutura de lib
@@ -203,12 +218,14 @@ O sistema é **completamente automático**:
 ## 📊 Monitoramento
 
 ### GitHub Actions
+
 - 📋 Summary detalhado de cada execução
 - 🔍 Logs completos de build e teste
 - ⚡ Execução paralela por lib
 - 🎯 Status individual por biblioteca
 
 ### Releases
+
 - 📦 Artefatos prontos para download
 - 📋 Changelog automático
 - 🔗 Links de instalação
@@ -217,17 +234,20 @@ O sistema é **completamente automático**:
 ## 🚨 Troubleshooting
 
 ### Build falha
+
 1. ✅ Verificar se `tsconfig.build.*.json` existem
 2. ✅ Verificar se `src/index.ts` existe
 3. ✅ Verificar sintaxe do `package.json`
 4. ✅ Verificar dependências no workspace
 
 ### Testes falham
+
 1. ✅ Verificar se arquivos `*.spec.ts` estão corretos
 2. ✅ Verificar configuração do Jest
 3. ✅ Verificar imports e exports
 
 ### Release não criada
+
 1. ✅ Verificar permissões do `GITHUB_TOKEN`
 2. ✅ Verificar se tag foi criada
 3. ✅ Verificar se commit foi feito
