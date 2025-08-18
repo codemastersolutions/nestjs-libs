@@ -240,15 +240,15 @@ jobs:
           echo "   3. Re-run this workflow"
 
       - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ matrix.lib }}-v${{ steps.new-version.outputs.new-version }}
-          release_name: ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
+          name: ${{ matrix.lib }} v${{ steps.new-version.outputs.new-version }}
           body: ${{ steps.release-notes.outputs.release-notes }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Summary
         run: |
