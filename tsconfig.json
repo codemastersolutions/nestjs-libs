@@ -29,9 +29,8 @@
   "include": ["src/**/*", "libs/**/*", "test/**/*"],
   "exclude": [
     "node_modules",
-    "**/*.spec.ts",
-    "**/*.test.ts",
     "changelog.config.js",
-    "commitlint.config.js"
+    "commitlint.config.js",
+    "**/jest.config.cjs"
   ]
 }
