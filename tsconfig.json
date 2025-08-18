@@ -30,6 +30,8 @@
   "exclude": [
     "node_modules",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "changelog.config.js",
+    "commitlint.config.js"
   ]
 }
