@@ -47,6 +47,7 @@
     "README.md",
     "README.pt-BR.md",
     "README.es.md",
+    "LICENSE",
     "package.json"
   ],
   "scripts": {
