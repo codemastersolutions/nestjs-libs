@@ -1,6 +1,10 @@
 # 🚀 NestJS Libs
 
-**📖 Idiomas de Documentación:** [English](README.md) | [Português](README.pt-BR.md) | [Español](README.es.md)
+**📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
+
+- [🇺🇸 English](README.md)
+- [🇧🇷 Português](README.pt-BR.md)
+- [🇪🇸 Español](README.es.md)
 
 ---
 

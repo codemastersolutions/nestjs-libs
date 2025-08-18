@@ -2,9 +2,9 @@
 
 **📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
 
-- [🇺🇸 English](CONTRIBUTING.md)
-- [🇧🇷 Português](CONTRIBUTING.pt-BR.md)
-- [🇪🇸 Español](CONTRIBUTING.es.md)
+- [🇺🇸 English](README.md)
+- [🇧🇷 Português](README.pt-BR.md)
+- [🇪🇸 Español](README.es.md)
 
 ---
 
