@@ -6,7 +6,31 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', '**/dist/**', 'dist/**'],
+    ignores: [
+      'eslint.config.mjs',
+      '**/dist/**',
+      'dist/**',
+      'commitlint.config.js',
+      'changelog.config.js',
+      'node_modules/**',
+      '**/node_modules/**',
+      '*.log',
+      'npm-debug.log*',
+      'yarn-debug.log*',
+      'yarn-error.log*',
+      'coverage/**',
+      '**/coverage/**',
+      '*.lcov',
+      '.vscode/**',
+      '.idea/**',
+      '*.swp',
+      '*.swo',
+      '.DS_Store',
+      'Thumbs.db',
+      '**/*.spec.ts',
+      '**/*.test.ts',
+      '**/jest.config.cjs',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -28,7 +52,7 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-unsafe-argument': 'warn'
+      '@typescript-eslint/no-unsafe-argument': 'warn',
     },
   },
 );

@@ -42,16 +42,83 @@ pnpm libs:status
 pnpm libs:build-all
 ```
 
-## 📋 Scripts Principais
+## 📋 Scripts Disponíveis
 
-| Comando                   | Descrição                                        |
-| ------------------------- | ------------------------------------------------ |
-| `pnpm libs:list`          | Lista todas as bibliotecas disponíveis           |
-| `pnpm libs:status`        | Mostra o status de cada biblioteca               |
-| `pnpm libs:build-all`     | Faz build de todas as bibliotecas                |
-| `pnpm libs:test-all`      | Testa todas as bibliotecas                       |
-| `pnpm libs:create <nome>` | Cria uma nova biblioteca                         |
-| `pnpm test:all-adapters`  | Testa com todos os adaptadores (Express/Fastify) |
+### 🏗️ Scripts de Build
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm clean` | Remove todos os artefatos de build | `pnpm clean` |
+| `pnpm build` | Limpa e faz build de todas as bibliotecas | `pnpm build` |
+| `pnpm build:all-libs` | Faz build de todas as bibliotecas sequencialmente | `pnpm build:all-libs` |
+| `pnpm build:lib <nome>` | Faz build de uma biblioteca específica (CJS + ESM) | `pnpm build:lib better-auth` |
+| `pnpm build:lib:cjs <nome>` | Faz build da versão CommonJS de uma biblioteca | `pnpm build:lib:cjs better-auth` |
+| `pnpm build:lib:esm <nome>` | Faz build da versão ES Modules de uma biblioteca | `pnpm build:lib:esm better-auth` |
+| `pnpm build:better-auth` | Faz build da biblioteca better-auth especificamente | `pnpm build:better-auth` |
+
+### 🧪 Scripts de Teste
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm test` | Executa todos os testes | `pnpm test` |
+| `pnpm test:watch` | Executa testes em modo watch | `pnpm test:watch` |
+| `pnpm test:cov` | Executa testes com relatório de cobertura | `pnpm test:cov` |
+| `pnpm test:debug` | Executa testes em modo debug | `pnpm test:debug` |
+| `pnpm test:e2e` | Executa testes end-to-end | `pnpm test:e2e` |
+| `pnpm test:better-auth` | Executa testes da biblioteca better-auth | `pnpm test:better-auth` |
+| `pnpm test:better-auth:cov` | Executa testes do better-auth com cobertura | `pnpm test:better-auth:cov` |
+| `pnpm test:better-auth:watch` | Executa testes do better-auth em modo watch | `pnpm test:better-auth:watch` |
+| `pnpm test:express` | Executa testes com adaptador Express | `pnpm test:express` |
+| `pnpm test:fastify` | Executa testes com adaptador Fastify | `pnpm test:fastify` |
+| `pnpm test:e2e:express` | Executa testes E2E com Express | `pnpm test:e2e:express` |
+| `pnpm test:e2e:fastify` | Executa testes E2E com Fastify | `pnpm test:e2e:fastify` |
+| `pnpm test:all-adapters` | Testa com todos os adaptadores (Express/Fastify) | `pnpm test:all-adapters` |
+
+### 📦 Scripts de Gerenciamento de Bibliotecas
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm libs:list` | Lista todas as bibliotecas disponíveis | `pnpm libs:list` |
+| `pnpm libs:build-all` | Faz build de todas as bibliotecas | `pnpm libs:build-all` |
+| `pnpm libs:test-all` | Testa todas as bibliotecas | `pnpm libs:test-all` |
+| `pnpm libs:clean-all` | Limpa artefatos de build de todas as bibliotecas | `pnpm libs:clean-all` |
+| `pnpm libs:status` | Mostra o status de cada biblioteca | `pnpm libs:status` |
+| `pnpm libs:create <nome>` | Cria uma nova biblioteca | `pnpm libs:create minha-nova-lib` |
+| `pnpm libs:validate` | Valida a estrutura das bibliotecas | `pnpm libs:validate` |
+| `pnpm libs:package-all` | Empacota todas as bibliotecas para distribuição | `pnpm libs:package-all` |
+
+### 🚀 Scripts de Publicação
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm publish:lib <nome> [--dry-run]` | Publica uma biblioteca específica | `pnpm publish:lib better-auth --dry-run` |
+| `pnpm publish:all [--dry-run]` | Publica todas as bibliotecas | `pnpm publish:all --dry-run` |
+
+> **💡 Dica:** Use a flag `--dry-run` para testar a publicação sem realmente publicar no npm.
+
+### 🛠️ Scripts de Desenvolvimento
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm start` | Inicia a aplicação | `pnpm start` |
+| `pnpm start:dev` | Inicia em modo desenvolvimento com watch | `pnpm start:dev` |
+| `pnpm start:debug` | Inicia em modo debug | `pnpm start:debug` |
+| `pnpm start:prod` | Inicia em modo produção | `pnpm start:prod` |
+| `pnpm format` | Formata código com Prettier | `pnpm format` |
+| `pnpm lint` | Analisa e corrige código com ESLint | `pnpm lint` |
+
+### 📝 Scripts de Git & Commit
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm commit` | Commit interativo com Conventional Commits | `pnpm commit` |
+| `pnpm commit:push` | Faz commit e push das mudanças | `pnpm commit:push` |
+
+### 🔧 Scripts Utilitários
+
+| Comando | Descrição | Exemplo |
+|---------|-----------|----------|
+| `pnpm prepare` | Configura hooks do Husky | `pnpm prepare` |
 
 ## 🤖 Sistema Automatizado
 

@@ -6,12 +6,12 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "clean": "rimraf dist libs/*/dist",
+    "clean": "rimraf dist libs/*/dist libs/*/node_modules",
     "build": "pnpm clean && pnpm build:all-libs",
     "build:all-libs": "for lib in libs/*/; do lib_name=$(basename $lib); echo \"Building $lib_name...\"; pnpm build:lib $lib_name; done",
-    "build:lib": "pnpm build:lib:cjs $1 && pnpm build:lib:esm $1",
-    "build:lib:cjs": "if [ -f \"libs/$1/tsconfig.build.cjs.json\" ]; then tsc -p libs/$1/tsconfig.build.cjs.json; fi",
-    "build:lib:esm": "if [ -f \"libs/$1/tsconfig.build.esm.json\" ]; then tsc -p libs/$1/tsconfig.build.esm.json; fi",
+    "build:lib": "pnpm clean && bash -c 'pnpm build:lib:cjs \"$0\" && pnpm build:lib:esm \"$0\"'",
+    "build:lib:cjs": "bash -c 'if [ -f \"libs/$0/tsconfig.build.cjs.json\" ]; then tsc -p libs/$0/tsconfig.build.cjs.json; fi'",
+    "build:lib:esm": "bash -c 'if [ -f \"libs/$0/tsconfig.build.esm.json\" ]; then tsc -p libs/$0/tsconfig.build.esm.json; fi'",
     "build:better-auth": "pnpm build:lib better-auth",
     "build:cjs": "tsc -p libs/better-auth/tsconfig.build.cjs.json",
     "build:esm": "tsc -p libs/better-auth/tsconfig.build.esm.json",
@@ -42,6 +42,8 @@
     "libs:create": "./scripts/manage-libs.sh create",
     "libs:validate": "./scripts/manage-libs.sh validate",
     "libs:package-all": "./scripts/manage-libs.sh package-all",
+    "publish:lib": "./scripts/manage-libs.sh publish",
+    "publish:all": "./scripts/manage-libs.sh publish-all",
     "commit": "git add . && npx git-cz",
     "commit:push": "git add . && npx git-cz && git push",
     "prepare": "husky"
@@ -132,7 +134,8 @@
   "pnpm": {
     "overrides": {
       "glob": "11.0.3",
-      "zod": "^4.0.0"
+      "zod": "^4.0.0",
+      "rimraf": "^6.0.1"
     }
   },
   "engines": {

@@ -160,7 +160,7 @@ describe('BetterAuthModule', () => {
       moduleInstance.configure(mockConsumer as any);
 
       expect(mockConsumer.apply).toHaveBeenCalledWith(BetterAuthMiddleware);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
       expect(mockConsumer.forRoutes).toHaveBeenCalledWith(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         { path: 'api/auth', method: expect.any(Number) },
