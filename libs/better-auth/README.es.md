@@ -453,14 +453,80 @@ export class AuthGuard implements CanActivate {
 4. **Seguridad de Base de Datos**: Asegura tu conexión de base de datos
 5. **Gestión de Secretos**: Usa secretos fuertes y únicos
 
+## Configuración CORS para Plugin OpenAPI
+
+Al usar Better Auth con el plugin OpenAPI (para documentación Swagger/Scalar), necesitas configurar CORS adecuadamente para manejar las solicitudes OPTIONS de preflight desde la interfaz de documentación.
+
+### Configuración CORS Requerida
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Configuración CORS esencial para plugin OpenAPI
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',  // Tu frontend
+      'http://localhost:3001',  // Tu servidor API
+      // Agrega otros orígenes según sea necesario
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+  });
+
+  await app.listen(3001);
+}
+bootstrap();
+```
+
+### Por Qué Esto Es Necesario
+
+El plugin OpenAPI genera documentación interactiva que hace solicitudes AJAX a tus endpoints de autenticación. Los navegadores envían solicitudes OPTIONS de preflight para estas solicitudes cross-origin, que necesitan headers CORS adecuados para tener éxito.
+
+**Sin configuración CORS:**
+- Las solicitudes OPTIONS devuelven 404 (Better Auth no maneja preflight)
+- La interfaz de documentación muestra errores "fail to fetch"
+- Los endpoints de autenticación aparecen rotos en la UI
+
+**Con configuración CORS adecuada:**
+- Las solicitudes OPTIONS devuelven 204 con headers CORS adecuados
+- La interfaz de documentación funciona perfectamente
+- Todos los flujos de autenticación funcionan correctamente
+
+### Notas Específicas por Framework
+
+#### Express.js
+```typescript
+// CORS es manejado automáticamente por NestJS
+app.enableCors({ /* config */ });
+```
+
+#### Fastify
+```typescript
+// CORS es manejado automáticamente por NestJS
+// No se necesita configuración específica de Fastify
+app.enableCors({ /* config */ });
+```
+
 ## Solución de Problemas
 
 ### Problemas Comunes
 
 1. **Módulo no encontrado**: Asegúrate de que tanto `@cms-nestjs-libs/better-auth` como `better-auth` estén instalados
 2. **Conexión de base de datos**: Verifica tu configuración de base de datos
-3. **Errores de CORS**: Revisa tu configuración de CORS
-4. **Conflictos de middleware**: Asegúrate de que no haya middleware conflictivo en las rutas de autenticación
+3. **Errores de CORS**: Revisa tu configuración de CORS (ver sección CORS arriba)
+4. **OpenAPI "fail to fetch"**: Asegúrate de que CORS esté configurado adecuadamente con método OPTIONS permitido
+5. **Conflictos de middleware**: Asegúrate de que no haya middleware conflictivo en las rutas de autenticación
 
 ## Contribuyendo
 

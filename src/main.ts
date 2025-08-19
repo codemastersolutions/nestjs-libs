@@ -49,6 +49,21 @@ async function bootstrapExpress() {
   const app = await NestFactory.create(AppExpressModule, {
     bodyParser: false,
   });
+
+  // Enable CORS for Express
+  app.enableCors({
+    origin: ['http://localhost:3900', 'http://localhost:3901'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+  });
+
   // swagger(app);
   await app.listen(port, host, () => {
     console.log(
@@ -73,6 +88,20 @@ async function bootstrapFastify() {
       logger,
     }),
   );
+
+  // Enable CORS for Fastify
+  app.enableCors({
+    origin: ['http://localhost:3900', 'http://localhost:3901'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+  });
 
   // swagger(app);
   await app.listen(port, host, () => {
