@@ -3,4 +3,5 @@
 export {
   BETTER_AUTH_OPTIONS,
   BETTER_AUTH_INSTANCE,
+  BETTER_AUTH_GUARD,
 } from './better-auth.symbols';

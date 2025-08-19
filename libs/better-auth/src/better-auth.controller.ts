@@ -1,4 +1,16 @@
-import { All, Controller, Param, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Patch,
+  Options,
+  Head,
+  Param,
+  Req,
+  Res,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { BetterAuthService } from './better-auth.service';
@@ -7,7 +19,13 @@ import { BetterAuthService } from './better-auth.service';
 export class BetterAuthController {
   constructor(private readonly betterAuthService: BetterAuthService) {}
 
-  @All('*')
+  @Get(':path')
+  @Post(':path')
+  @Put(':path')
+  @Delete(':path')
+  @Patch(':path')
+  @Options(':path')
+  @Head(':path')
   async handleAuth(
     @Req() request: Request | FastifyRequest,
     @Res() response: Response | FastifyReply,

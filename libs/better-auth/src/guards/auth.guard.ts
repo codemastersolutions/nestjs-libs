@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  Optional,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
@@ -14,12 +15,12 @@ import { PUBLIC_METADATA_KEY } from '../decorators/public.decorator';
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly betterAuthService: BetterAuthService,
-    private readonly reflector: Reflector,
+    @Optional() private readonly reflector?: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Verificar se a rota é pública
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
+    const isPublic = this.reflector?.getAllAndOverride<boolean>(
       PUBLIC_METADATA_KEY,
       [context.getHandler(), context.getClass()],
     );

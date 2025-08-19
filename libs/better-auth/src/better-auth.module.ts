@@ -1,4 +1,5 @@
 import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import {
   BETTER_AUTH_INSTANCE,
   BETTER_AUTH_OPTIONS,
@@ -10,6 +11,7 @@ import {
   BetterAuthModuleOptions,
   BetterAuthOptionsFactory,
 } from './better-auth.types';
+import { AuthGuard } from './guards/auth.guard';
 
 @Global()
 @Module({})
@@ -28,13 +30,15 @@ export class BetterAuthModule {
         useValue: options.auth,
       },
       BetterAuthService,
+      Reflector,
+      AuthGuard,
     ];
 
     return {
       module: BetterAuthModule,
       controllers: [BetterAuthController],
       providers: providers,
-      exports: [BetterAuthService, BETTER_AUTH_INSTANCE],
+      exports: [BetterAuthService, BETTER_AUTH_INSTANCE, AuthGuard],
     };
   }
 
@@ -52,6 +56,8 @@ export class BetterAuthModule {
         inject: [BETTER_AUTH_OPTIONS],
       },
       BetterAuthService,
+      Reflector,
+      AuthGuard,
     ];
 
     return {
@@ -59,7 +65,7 @@ export class BetterAuthModule {
       imports: options.imports || [],
       controllers: [BetterAuthController],
       providers: providers,
-      exports: [BetterAuthService, BETTER_AUTH_INSTANCE],
+      exports: [BetterAuthService, BETTER_AUTH_INSTANCE, AuthGuard],
     };
   }
 

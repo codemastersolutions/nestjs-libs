@@ -7,21 +7,13 @@ import { AppExpressService } from './app.service';
 
 @Module({
   imports: [
-    BetterAuthModule.forRootAsync({
-      useFactory: () => {
-        const auth = betterAuth({
-          baseURL: 'http://localhost:3901',
-          basePath: '/api/auth',
-          secret: 'better-auth-secret-key-for-testing',
-          emailAndPassword: {
-            enabled: true,
-          },
-          plugins: [openAPI()],
-        });
-        return {
-          auth,
-        };
-      },
+    BetterAuthModule.forRoot({
+      auth: betterAuth({
+        emailAndPassword: {
+          enabled: true,
+        },
+        plugins: [openAPI()],
+      }),
     }),
   ],
   controllers: [AppExpressController],
