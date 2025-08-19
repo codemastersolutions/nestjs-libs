@@ -11,29 +11,38 @@ export class BetterAuthController {
   async handleAuth(
     @Req() request: Request | FastifyRequest,
     @Res() response: Response | FastifyReply,
-    @Param() params: any,
+    @Param() params: Record<string, string>,
   ) {
     try {
+      // Type guards for better type safety
+      const isExpressRequest = (
+        req: Request | FastifyRequest,
+      ): req is Request => 'originalUrl' in req && 'protocol' in req;
+
+      const isFastifyRequest = (
+        req: Request | FastifyRequest,
+      ): req is FastifyRequest => 'url' in req && !('originalUrl' in req);
+
+      const getRequestUrl = (req: Request | FastifyRequest): string => {
+        if (isExpressRequest(req)) {
+          return req.originalUrl || req.url || '';
+        } else if (isFastifyRequest(req)) {
+          return req.url || '';
+        }
+        return '';
+      };
+
       console.log('[BetterAuthController] Request received:', {
         method: request.method,
-        url:
-          'url' in request
-            ? request.url
-            : 'originalUrl' in request
-              ? (request as any).originalUrl
-              : '',
+        url: getRequestUrl(request),
         params,
         headers: request.headers,
       });
 
       // Create a Web API compatible request object
-      const protocol =
-        'protocol' in request ? (request as Request).protocol : 'http';
+      const protocol = isExpressRequest(request) ? request.protocol : 'http';
       const host = request.headers.host || 'localhost';
-      const originalUrl =
-        'originalUrl' in request
-          ? (request as Request).originalUrl
-          : (request as FastifyRequest).url;
+      const originalUrl = getRequestUrl(request);
       const method = request.method || 'GET';
 
       const fullUrl = `${protocol}://${host}${originalUrl}`;
