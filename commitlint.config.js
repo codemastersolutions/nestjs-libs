@@ -13,9 +13,7 @@ module.exports = {
         'perf',     // Mudança de código que melhora performance
         'test',     // Adição de testes ausentes ou correção de testes existentes
         'chore',    // Mudanças no processo de build ou ferramentas auxiliares
-        'ci',       // Mudanças nos arquivos e scripts de CI
-        'build',    // Mudanças que afetam o sistema de build ou dependências externas
-        'revert'    // Reverte um commit anterior
+        'ci'        // Mudanças nos arquivos e scripts de CI
       ]
     ],
     'type-case': [2, 'always', 'lower-case'],

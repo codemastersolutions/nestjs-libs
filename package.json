@@ -46,8 +46,8 @@
     "publish:lib:dry-run": "./scripts/manage-libs.sh publish --dry-run",
     "publish:all": "./scripts/manage-libs.sh publish-all",
     "publish:all:dry-run": "./scripts/manage-libs.sh publish-all --dry-run",
-    "commit": "git add . && git commit -m",
-    "commit:push": "git add . && git commit -m $1 && git push",
+    "commit": "git add . && npx cz",
+    "commit:push": "git add . && npx cz && git push",
     "prepare": "husky"
   },
   "dependencies": {
@@ -63,7 +63,12 @@
     "pino-pretty": "^13.1.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
-  },
+   },
+   "config": {
+     "commitizen": {
+       "path": "cz-customizable"
+     }
+   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
@@ -77,6 +82,7 @@
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "commitizen": "^4.3.1",
+    "cz-customizable": "^7.5.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
