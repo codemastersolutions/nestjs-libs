@@ -1,24 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BetterAuthController } from './better-auth.controller';
 import { BetterAuthModule } from './better-auth.module';
 import { BetterAuthService } from './better-auth.service';
-import { BetterAuthMiddleware } from './better-auth.middleware';
-import { BetterAuthModuleOptions } from './better-auth.types';
+import type { BetterAuthModuleOptions } from './better-auth.types';
+import { RateLimiter } from './utils/rate-limiter.util';
 
 describe('BetterAuthModule', () => {
   const mockAuth = {
-    handler: jest.fn(),
+    handler: jest.fn().mockResolvedValue(new Response('{}', { status: 200 })),
     api: {
-      getSession: jest.fn(),
-      signOut: jest.fn(),
+      getSession: jest.fn().mockResolvedValue({ session: null, user: null }),
+      signOut: jest.fn().mockResolvedValue({ success: true }),
     },
-    options: {},
+    options: {
+      baseURL: 'http://localhost:3000',
+      basePath: '/api/auth',
+    },
     $ERROR_CODES: {},
-    $context: {},
+    $context: Promise.resolve({}),
   };
 
   const mockOptions: BetterAuthModuleOptions = {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     auth: mockAuth as any,
+    disableMiddleware: false,
+    disableExceptionFilter: false,
   };
 
   describe('forRoot', () => {
@@ -104,73 +109,30 @@ describe('BetterAuthModule', () => {
     });
   });
 
-  describe('middleware configuration', () => {
-    it('should configure middleware when disableMiddleware is false', () => {
-      const mockConsumer = {
-        apply: jest.fn().mockReturnThis(),
-        forRoutes: jest.fn(),
-      };
+  describe('controller registration', () => {
+    it('should register BetterAuthController when module is created', async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [BetterAuthModule.forRoot(mockOptions)],
+      }).compile();
 
-      // Set moduleOptions with disableMiddleware: false
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (BetterAuthModule as any).moduleOptions = {
-        ...mockOptions,
-        disableMiddleware: false,
-      };
-
-      const moduleInstance = new BetterAuthModule();
-      moduleInstance.configure(mockConsumer as any);
-
-      expect(mockConsumer.apply).toHaveBeenCalledWith(BetterAuthMiddleware);
-      expect(mockConsumer.forRoutes).toHaveBeenCalled();
+      const controller = module.get<BetterAuthController>(BetterAuthController);
+      expect(controller).toBeDefined();
     });
 
-    it('should not configure middleware when disableMiddleware is true', () => {
-      const mockConsumer = {
-        apply: jest.fn().mockReturnThis(),
-        forRoutes: jest.fn(),
-      };
+    it('should register BetterAuthController with async configuration', async () => {
+      const factory = jest.fn().mockReturnValue(mockOptions);
 
-      // Set moduleOptions with disableMiddleware: true
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (BetterAuthModule as any).moduleOptions = {
-        ...mockOptions,
-        disableMiddleware: true,
-      };
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [
+          BetterAuthModule.forRootAsync({
+            useFactory: factory,
+          }),
+        ],
+      }).compile();
 
-      const moduleInstance = new BetterAuthModule();
-      moduleInstance.configure(mockConsumer as any);
-
-      expect(mockConsumer.apply).not.toHaveBeenCalled();
-      expect(mockConsumer.forRoutes).not.toHaveBeenCalled();
-    });
-
-    it('should configure middleware when moduleOptions is undefined (default behavior)', () => {
-      const mockConsumer = {
-        apply: jest.fn().mockReturnThis(),
-        forRoutes: jest.fn(),
-      };
-
-      // Reset moduleOptions to undefined
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (BetterAuthModule as any).moduleOptions = undefined;
-
-      const moduleInstance = new BetterAuthModule();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      moduleInstance.configure(mockConsumer as any);
-
-      expect(mockConsumer.apply).toHaveBeenCalledWith(BetterAuthMiddleware);
-
-      expect(mockConsumer.forRoutes).toHaveBeenCalledWith(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        { path: 'api/auth', method: expect.any(Number) },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        { path: 'api/auth/*path', method: expect.any(Number) },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        { path: '/api/auth', method: expect.any(Number) },
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        { path: '/api/auth/*path', method: expect.any(Number) },
-      );
+      const controller = module.get<BetterAuthController>(BetterAuthController);
+      expect(controller).toBeDefined();
     });
   });
+
 });

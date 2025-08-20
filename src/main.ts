@@ -44,13 +44,23 @@ const swagger = (app: INestApplication) => {
   };
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   app.use('/reference', apiReference(scalarOptions));
-  // return SwaggerModule.setup('api', app, document);
 };
 
 async function bootstrapExpress() {
   const port: number = 3900 as const;
-  const app = await NestFactory.create(AppExpressModule, {
-    bodyParser: false,
+  const app = await NestFactory.create(AppExpressModule);
+  // Enable CORS for Express
+  app.enableCors({
+    origin: ['http://localhost:3900', 'http://localhost:3901'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
   });
   swagger(app);
   await app.listen(port, host, () => {
@@ -61,21 +71,35 @@ async function bootstrapExpress() {
 }
 
 async function bootstrapFastify() {
-  const logger = {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-      },
-    },
-  } as const;
+  // const logger = {
+  //   transport: {
+  //     target: 'pino-pretty',
+  //     options: {
+  //       colorize: true,
+  //     },
+  //   },
+  // } as const;
   const port: number = 3901 as const;
   const app = await NestFactory.create<NestFastifyApplication>(
     AppFastifyModule,
-    new FastifyAdapter({
-      logger,
-    }),
+    new FastifyAdapter(),
+    //   {
+    //   logger,
+    // }
   );
+  // Enable CORS for Fastify
+  app.enableCors({
+    origin: ['http://localhost:3900', 'http://localhost:3901'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+  });
   swagger(app);
   await app.listen(port, host, () => {
     console.log(
@@ -84,12 +108,11 @@ async function bootstrapFastify() {
   });
 }
 
-bootstrapExpress().catch((err) => {
-  console.error(err);
+bootstrapFastify().catch((err) => {
+  console.error('Error starting Fastify server:', err);
   process.exit(1);
 });
-
-bootstrapFastify().catch((err) => {
-  console.error(err);
+bootstrapExpress().catch((err) => {
+  console.error('Error starting Express server:', err);
   process.exit(1);
 });

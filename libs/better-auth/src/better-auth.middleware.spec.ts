@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BetterAuthMiddleware } from './better-auth.middleware';
 import { BetterAuthService } from './better-auth.service';
 import type { BetterAuthModuleOptions } from './better-auth.types';
+import { RateLimiter } from './utils/rate-limiter.util';
 
 describe('BetterAuthMiddleware', () => {
   let middleware: BetterAuthMiddleware;
@@ -14,8 +15,11 @@ describe('BetterAuthMiddleware', () => {
   let mockOptions: BetterAuthModuleOptions;
   let mockNext: jest.Mock;
   let mockResponse: any;
+  let consoleErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
+    // Mock console.error to suppress security logs during tests
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
     // Mock options
     mockOptions = {
       auth: {
@@ -64,6 +68,7 @@ describe('BetterAuthMiddleware', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy.mockRestore();
   });
 
   describe('Basic functionality', () => {
@@ -77,10 +82,10 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         path: '/api/auth/session',
         method: 'GET',
-        headers: { host: 'localhost:3000' },
+        headers: { host: 'localhost' },
         protocol: 'http',
         originalUrl: '/api/auth/session',
-        get: jest.fn().mockReturnValue('localhost:3000'),
+        get: jest.fn().mockReturnValue('localhost'),
       };
 
       const mockWebResponse = {
@@ -108,7 +113,7 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         path: '/api/users',
         method: 'GET',
-        headers: { host: 'localhost:3000' },
+        headers: { host: 'localhost' },
       };
 
       await middleware.use(mockRequest, mockResponse, mockNext);
@@ -123,7 +128,7 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         url: '/api/auth/session?test=1',
         method: 'POST',
-        headers: { host: 'localhost:3001' },
+        headers: { host: 'localhost' },
         body: { email: 'test@example.com' },
       };
 
@@ -152,7 +157,7 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         url: '/api/auth/signin',
         method: 'POST',
-        headers: { host: ['localhost:3001', 'example.com'] },
+        headers: { host: ['localhost', 'example.com'] },
       };
 
       const mockWebResponse = {
@@ -234,7 +239,8 @@ describe('BetterAuthMiddleware', () => {
 
       // Verify that error was logged for security purposes
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[BetterAuthMiddleware] Authentication error: Error',
+        expect.stringContaining('[BetterAuth:ERROR] Authentication error occurred'),
+        expect.any(Object),
       );
     });
 
@@ -262,7 +268,8 @@ describe('BetterAuthMiddleware', () => {
 
       // Verify that error was logged for security purposes
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[BetterAuthMiddleware] Authentication error: Error',
+        expect.stringContaining('[BetterAuth:ERROR] Authentication error occurred'),
+        expect.any(Object),
       );
       expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
       expect(mockNext).not.toHaveBeenCalled();
@@ -322,10 +329,10 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         path: '/api/auth/signout',
         method: 'POST',
-        headers: { host: 'localhost:3000' },
+        headers: { host: 'localhost' },
         protocol: 'http',
         originalUrl: '/api/auth/signout',
-        get: jest.fn().mockReturnValue('localhost:3000'),
+        get: jest.fn().mockReturnValue('localhost'),
       };
 
       const mockWebResponse = {
@@ -348,10 +355,10 @@ describe('BetterAuthMiddleware', () => {
     it('should handle request without method (defaults to GET)', async () => {
       const mockRequest = {
         path: '/api/auth/session',
-        headers: { host: 'localhost:3000' },
+        headers: { host: 'localhost' },
         protocol: 'http',
         originalUrl: '/api/auth/session',
-        get: jest.fn().mockReturnValue('localhost:3000'),
+        get: jest.fn().mockReturnValue('localhost'),
       };
 
       const mockWebResponse = {
@@ -374,9 +381,9 @@ describe('BetterAuthMiddleware', () => {
       const mockRequest = {
         url: '/api/auth/session',
         method: 'GET',
-        headers: { host: 'localhost:3000' },
+        headers: { host: 'localhost' },
         protocol: 'http',
-        get: jest.fn().mockReturnValue('localhost:3000'),
+        get: jest.fn().mockReturnValue('localhost'),
       };
 
       const mockWebResponse = {

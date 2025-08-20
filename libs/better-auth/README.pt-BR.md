@@ -30,10 +30,13 @@ Nosso objetivo é fornecer à comunidade NestJS uma solução de autenticação 
 
 - 🚀 **Integração Fácil**: Configuração simples com injeção de dependência do NestJS
 - 🔒 **Seguro por Padrão**: Recursos de segurança integrados e melhores práticas
+- 🛡️ **Rate Limiting**: Rate limiting integrado com limites configuráveis
 - 🛠️ **Configuração Flexível**: Suporte para configuração síncrona e assíncrona
-- 🌐 **Suporte a Middleware**: Manipulação automática de rotas para endpoints de autenticação
+- 🌐 **Suporte Universal a Frameworks**: Funciona perfeitamente com Express.js e Fastify
 - 📦 **Suporte TypeScript**: Suporte completo ao TypeScript com definições de tipos
 - 🔧 **Personalizável**: Middleware, CORS e tratamento de exceções configuráveis
+- ⚡ **Otimizado para Performance**: Manipulação eficiente de requisições e validação
+- 🔐 **Segurança Aprimorada**: Validação de host header, sanitização de requisições e validação de entrada
 
 ## Instalação
 
@@ -43,6 +46,55 @@ npm install @cms-nestjs-libs/better-auth better-auth
 yarn add @cms-nestjs-libs/better-auth better-auth
 # ou
 pnpm add @cms-nestjs-libs/better-auth better-auth
+```
+
+## Variáveis de Ambiente
+
+A biblioteca suporta várias variáveis de ambiente para configuração:
+
+### Configuração Principal
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `NODE_ENV` | Modo do ambiente | `development` | `production`, `test`, `development` |
+| `AUTH_SECRET` | Chave secreta para autenticação | **Obrigatório** | `sua-chave-super-secreta-aqui` |
+| `DATABASE_URL` | String de conexão do banco de dados | **Obrigatório** | `postgresql://user:pass@localhost:5432/db` |
+| `API_PREFIX` | Prefixo global da API | `api` | `v1`, `api/v2` |
+
+### Configuração de Rate Limiting
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `RATE_LIMIT_WINDOW_MS` | Janela de rate limit em milissegundos | `900000` (15 min) | `60000` (1 min) |
+| `RATE_LIMIT_MAX_REQUESTS` | Máximo de requisições por janela | `100` | `50`, `200` |
+| `RATE_LIMIT_ENABLED` | Habilitar/desabilitar rate limiting | `true` | `false` |
+
+### Configuração de Segurança
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `CORS_ORIGIN` | Origens CORS permitidas (separadas por vírgula) | `http://localhost:3000` | `https://app.com,https://admin.app.com` |
+| `TRUSTED_HOSTS` | Padrões de hosts confiáveis (separados por vírgula) | `localhost` | `app.com,*.app.com` |
+| `ENABLE_REQUEST_VALIDATION` | Habilitar validação de requisições | `true` | `false` |
+
+### Exemplo de Arquivo .env
+
+```env
+# Configuração Principal
+NODE_ENV=production
+AUTH_SECRET=sua-chave-super-secreta-aqui-torne-ela-longa-e-aleatoria
+DATABASE_URL=postgresql://username:password@localhost:5432/seu_banco
+API_PREFIX=api/v1
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_ENABLED=true
+
+# Segurança
+CORS_ORIGIN=https://seuapp.com,https://admin.seuapp.com
+TRUSTED_HOSTS=seuapp.com,*.seuapp.com
+ENABLE_REQUEST_VALIDATION=true
 ```
 
 ## Scripts Disponíveis
@@ -453,14 +505,80 @@ export class AuthGuard implements CanActivate {
 4. **Segurança do Banco de Dados**: Proteja sua conexão com o banco de dados
 5. **Gerenciamento de Segredos**: Use segredos fortes e únicos
 
+## Configuração CORS para Plugin OpenAPI
+
+Ao usar o Better Auth com o plugin OpenAPI (para documentação Swagger/Scalar), você precisa configurar CORS adequadamente para lidar com requisições OPTIONS de preflight da interface de documentação.
+
+### Configuração CORS Necessária
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Configuração CORS essencial para plugin OpenAPI
+  app.enableCors({
+    origin: [
+      'http://localhost:3000',  // Seu frontend
+      'http://localhost:3001',  // Seu servidor API
+      // Adicione outras origens conforme necessário
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+    ],
+  });
+
+  await app.listen(3001);
+}
+bootstrap();
+```
+
+### Por Que Isso É Necessário
+
+O plugin OpenAPI gera documentação interativa que faz requisições AJAX para seus endpoints de autenticação. Os navegadores enviam requisições OPTIONS de preflight para essas requisições cross-origin, que precisam de cabeçalhos CORS adequados para ter sucesso.
+
+**Sem configuração CORS:**
+- Requisições OPTIONS retornam 404 (Better Auth não lida com preflight)
+- Interface de documentação mostra erros "fail to fetch"
+- Endpoints de autenticação aparecem quebrados na UI
+
+**Com configuração CORS adequada:**
+- Requisições OPTIONS retornam 204 com cabeçalhos CORS adequados
+- Interface de documentação funciona perfeitamente
+- Todos os fluxos de autenticação funcionam corretamente
+
+### Notas Específicas por Framework
+
+#### Express.js
+```typescript
+// CORS é tratado automaticamente pelo NestJS
+app.enableCors({ /* config */ });
+```
+
+#### Fastify
+```typescript
+// CORS é tratado automaticamente pelo NestJS
+// Nenhuma configuração específica do Fastify é necessária
+app.enableCors({ /* config */ });
+```
+
 ## Solução de Problemas
 
 ### Problemas Comuns
 
 1. **Módulo não encontrado**: Certifique-se de que tanto `@cms-nestjs-libs/better-auth` quanto `better-auth` estão instalados
 2. **Conexão com banco de dados**: Verifique sua configuração de banco de dados
-3. **Erros de CORS**: Verifique sua configuração de CORS
-4. **Conflitos de middleware**: Certifique-se de que não há middleware conflitante nas rotas de autenticação
+3. **Erros de CORS**: Verifique sua configuração de CORS (veja seção CORS acima)
+4. **OpenAPI "fail to fetch"**: Certifique-se de que CORS está configurado adequadamente com método OPTIONS permitido
+5. **Conflitos de middleware**: Certifique-se de que não há middleware conflitante nas rotas de autenticação
 
 ## Contribuindo
 

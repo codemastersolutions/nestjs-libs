@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { AuthRequired } from '../../libs/better-auth/src';
+import { Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AppFastifyService } from './app.service';
 
@@ -10,5 +11,13 @@ export class AppFastifyController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Post('test/auth')
+  @AuthRequired()
+  testAuth() {
+    return {
+      message: 'Hello, world!',
+    };
   }
 }

@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthRequired } from '../../libs/better-auth/src';
 import { AppExpressService } from './app.service';
 
 @ApiTags('App Express')
@@ -10,5 +11,11 @@ export class AppExpressController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('test/auth')
+  @AuthRequired()
+  testAuth(): string {
+    return 'Authenticated successfully!';
   }
 }
