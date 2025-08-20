@@ -5,10 +5,10 @@ import { AuthGuard } from '../guards/auth.guard';
 export const ROLES_METADATA_KEY = 'auth:roles';
 
 /**
- * Decorator para proteger rotas baseado em roles/permissões
- * Automaticamente aplica autenticação também
+ * Decorator to protect routes based on roles/permissions
+ * Automatically applies authentication as well
  *
- * @param roles - Array de roles permitidas para acessar a rota
+ * @param roles - Array of roles allowed to access the route
  *
  * @example
  * ```typescript
@@ -21,24 +21,24 @@ export const ROLES_METADATA_KEY = 'auth:roles';
  *   }
  * }
  *
- * // Ou em métodos específicos
+ * // Or on specific methods
  * @Controller('content')
  * export class ContentController {
  *   @Get()
  *   getContent() {
- *     return { content: 'Conteúdo público' };
+ *     return { content: 'Public content' };
  *   }
  *
  *   @Roles(['editor', 'admin'])
  *   @Post()
  *   createContent() {
- *     return { message: 'Conteúdo criado' };
+ *     return { message: 'Content created' };
  *   }
  *
  *   @Roles(['admin'])
  *   @Delete(':id')
  *   deleteContent() {
- *     return { message: 'Conteúdo deletado' };
+ *     return { message: 'Content deleted' };
  *   }
  * }
  * ```

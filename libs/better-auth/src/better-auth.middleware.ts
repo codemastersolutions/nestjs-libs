@@ -2,7 +2,9 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 import { BetterAuthService } from './better-auth.service';
 
-// Interface for handling both Express and Fastify request objects
+/**
+ * Universal request interface that supports both Express and other HTTP frameworks
+ */
 interface UniversalRequest {
   path?: string;
   url?: string;
@@ -14,10 +16,24 @@ interface UniversalRequest {
   get?: (header: string) => string | undefined;
 }
 
+/**
+ * Middleware that handles Better Auth authentication requests
+ * Intercepts requests to the authentication path and processes them through Better Auth
+ */
 @Injectable()
 export class BetterAuthMiddleware implements NestMiddleware {
+  /**
+   * Creates an instance of BetterAuthMiddleware
+   * @param betterAuthService - The Better Auth service instance
+   */
   constructor(private readonly betterAuthService: BetterAuthService) {}
 
+  /**
+   * Middleware function that processes HTTP requests
+   * @param req - The incoming request object
+   * @param res - The response object
+   * @param next - The next function to call in the middleware chain
+   */
   async use(req: UniversalRequest, res: Response, next: NextFunction) {
     const options = this.betterAuthService.getOptions();
     const authPath = options.globalPrefix
@@ -114,9 +130,9 @@ export class BetterAuthMiddleware implements NestMiddleware {
         }
         return;
       } catch (error) {
-        // Log security-relevant errors even when exception filter is disabled
+        // Handle authentication errors securely
         if (error instanceof Error) {
-          // Only log error type and message, not sensitive details
+          // Log error for debugging purposes without exposing sensitive details
           console.error(
             `[BetterAuthMiddleware] Authentication error: ${error.name}`,
           );

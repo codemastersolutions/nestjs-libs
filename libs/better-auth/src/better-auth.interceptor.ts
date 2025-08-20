@@ -9,10 +9,24 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { BetterAuthService } from './better-auth.service';
 
+/**
+ * Interceptor that handles Better Auth authentication requests
+ * Supports both Express and Fastify frameworks
+ */
 @Injectable()
 export class BetterAuthInterceptor implements NestInterceptor {
+  /**
+   * Creates an instance of BetterAuthInterceptor
+   * @param betterAuthService - The Better Auth service instance
+   */
   constructor(private readonly betterAuthService: BetterAuthService) {}
 
+  /**
+   * Intercepts HTTP requests and handles authentication
+   * @param context - The execution context containing request/response objects
+   * @param next - The next handler in the interceptor chain
+   * @returns Promise that resolves to an Observable
+   */
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
@@ -116,6 +130,7 @@ export class BetterAuthInterceptor implements NestInterceptor {
           });
         }
       } catch (error) {
+        // Handle authentication errors securely
         console.error('[BetterAuthInterceptor] Authentication error:', error);
 
         if (!options.disableExceptionFilter) {

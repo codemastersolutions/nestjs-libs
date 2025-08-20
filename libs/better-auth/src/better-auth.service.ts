@@ -5,8 +5,17 @@ import {
 } from './better-auth.constants';
 import type { Auth, BetterAuthModuleOptions } from './better-auth.types';
 
+/**
+ * Service that provides Better Auth functionality
+ * Handles authentication requests and session management
+ */
 @Injectable()
 export class BetterAuthService {
+  /**
+   * Creates an instance of BetterAuthService
+   * @param auth - The Better Auth instance
+   * @param options - The Better Auth module configuration options
+   */
   constructor(
     @Inject(BETTER_AUTH_INSTANCE) private readonly auth: Auth,
     @Inject(BETTER_AUTH_OPTIONS)
@@ -14,21 +23,26 @@ export class BetterAuthService {
   ) {}
 
   /**
-   * Get the Better Auth instance
+   * Gets the Better Auth instance
+   * @returns The Better Auth instance with handler and API methods
    */
   getAuth(): Auth {
     return this.auth;
   }
 
   /**
-   * Get module options
+   * Gets the module configuration options
+   * @returns The Better Auth module options
    */
   getOptions(): BetterAuthModuleOptions {
     return this.options;
   }
 
   /**
-   * Handle authentication request
+   * Handles authentication requests through Better Auth
+   * @param request - The Web API Request object
+   * @returns Promise that resolves to a Response object
+   * @throws Error if request is invalid or missing required properties
    */
   async handleRequest(request: any) {
     // Validate request object before processing
@@ -47,7 +61,9 @@ export class BetterAuthService {
   }
 
   /**
-   * Get session from request
+   * Gets the current session from request headers
+   * @param request - Object containing request headers
+   * @returns Promise that resolves to session and user data, or null if no session
    */
   async getSession(request: { headers: Record<string, string | string[]> }) {
     // Validate request headers
@@ -61,7 +77,9 @@ export class BetterAuthService {
   }
 
   /**
-   * Sign out user
+   * Signs out the current user
+   * @param request - Object containing request headers
+   * @returns Promise that resolves to sign out result
    */
   async signOut(request: { headers: Record<string, string | string[]> }) {
     // Validate request headers

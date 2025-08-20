@@ -13,11 +13,18 @@ import {
 } from './better-auth.types';
 import { AuthGuard } from './guards/auth.guard';
 
+/**
+ * Better Auth module for NestJS applications
+ * Provides authentication functionality with support for multiple frameworks
+ * This is a global module that exports authentication services and guards
+ */
 @Global()
 @Module({})
 export class BetterAuthModule {
   /**
-   * Register Better Auth module synchronously
+   * Registers Better Auth module synchronously with provided options
+   * @param options - Better Auth configuration options
+   * @returns Dynamic module configuration
    */
   static forRoot(options: BetterAuthModuleOptions): DynamicModule {
     const providers: Provider[] = [
@@ -43,7 +50,9 @@ export class BetterAuthModule {
   }
 
   /**
-   * Register Better Auth module asynchronously
+   * Registers Better Auth module asynchronously with factory or existing providers
+   * @param options - Async configuration options (factory, existing provider, or class)
+   * @returns Dynamic module configuration
    */
   static forRootAsync(options: BetterAuthModuleAsyncOptions): DynamicModule {
     const providers: Provider[] = [
@@ -69,6 +78,11 @@ export class BetterAuthModule {
     };
   }
 
+  /**
+   * Creates async providers for Better Auth module
+   * @param options - Async configuration options
+   * @returns Array of providers for dependency injection
+   */
   private static createAsyncProviders(
     options: BetterAuthModuleAsyncOptions,
   ): Provider[] {
@@ -85,6 +99,11 @@ export class BetterAuthModule {
     ];
   }
 
+  /**
+   * Creates the async options provider based on configuration type
+   * @param options - Async configuration options
+   * @returns Provider for Better Auth options
+   */
   private static createAsyncOptionsProvider(
     options: BetterAuthModuleAsyncOptions,
   ): Provider {

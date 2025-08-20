@@ -1,8 +1,8 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 /**
- * Decorator para extrair o usuário autenticado da requisição
- * Deve ser usado em conjunto com guards de autenticação
+ * Decorator to extract the authenticated user from the request
+ * Should be used together with authentication guards
  *
  * @example
  * ```typescript

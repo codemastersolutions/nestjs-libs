@@ -4,8 +4,8 @@ import { AuthGuard } from '../guards/auth.guard';
 export const AUTH_METADATA_KEY = 'auth:required';
 
 /**
- * Decorator para proteger rotas que requerem autenticação
- * Pode ser aplicado em classes ou métodos de controller
+ * Decorator to protect routes that require authentication
+ * Can be applied to controller classes or methods
  *
  * @example
  * ```typescript
@@ -14,22 +14,22 @@ export const AUTH_METADATA_KEY = 'auth:required';
  * export class ProtectedController {
  *   @Get()
  *   getProtectedData() {
- *     return { message: 'Dados protegidos' };
+ *     return { message: 'Protected data' };
  *   }
  * }
  *
- * // Ou em métodos específicos
+ * // Or on specific methods
  * @Controller('mixed')
  * export class MixedController {
  *   @Get('public')
  *   getPublicData() {
- *     return { message: 'Dados públicos' };
+ *     return { message: 'Public data' };
  *   }
  *
  *   @AuthRequired()
  *   @Get('private')
  *   getPrivateData() {
- *     return { message: 'Dados privados' };
+ *     return { message: 'Private data' };
  *   }
  * }
  * ```

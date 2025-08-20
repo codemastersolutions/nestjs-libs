@@ -15,10 +15,25 @@ import type { Request, Response } from 'express';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { BetterAuthService } from './better-auth.service';
 
+/**
+ * Controller that handles all Better Auth HTTP requests
+ * Provides endpoints for authentication operations
+ */
 @Controller('api/auth')
 export class BetterAuthController {
+  /**
+   * Creates an instance of BetterAuthController
+   * @param betterAuthService - The Better Auth service instance
+   */
   constructor(private readonly betterAuthService: BetterAuthService) {}
 
+  /**
+   * Handles all HTTP methods for authentication requests
+   * This endpoint processes any request that matches the auth path
+   * @param request - The incoming HTTP request (Express or Fastify)
+   * @param response - The HTTP response object (Express or Fastify)
+   * @param params - Route parameters from the URL
+   */
   @Get(':path')
   @Post(':path')
   @Put(':path')

@@ -3,8 +3,8 @@ import { SetMetadata } from '@nestjs/common';
 export const PUBLIC_METADATA_KEY = 'isPublic';
 
 /**
- * Decorator para marcar rotas como públicas (não precisam autenticação)
- * Útil quando há um guard global de autenticação
+ * Decorator to mark routes as public (no authentication required)
+ * Useful when there is a global authentication guard
  *
  * @example
  * ```typescript

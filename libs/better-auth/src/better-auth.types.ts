@@ -1,6 +1,9 @@
 import { ModuleMetadata, Type } from '@nestjs/common';
 
-// Define a more flexible Auth type that matches the actual better-auth structure
+/**
+ * Better Auth instance interface that matches the actual better-auth structure
+ * Provides authentication handling and API methods
+ */
 export interface Auth {
   handler: (request: Request) => Promise<Response>;
   api: {
@@ -67,18 +70,34 @@ export interface BetterAuthModuleOptions {
   disableMiddleware?: boolean;
 }
 
+/**
+ * Factory interface for creating Better Auth options
+ * Used for dynamic configuration in async module setup
+ */
 export interface BetterAuthOptionsFactory {
+  /**
+   * Creates Better Auth configuration options
+   * @returns Promise or synchronous Better Auth module options
+   */
   createBetterAuthOptions():
     | Promise<BetterAuthModuleOptions>
     | BetterAuthModuleOptions;
 }
 
+/**
+ * Async configuration options for Better Auth module
+ * Supports various patterns for dynamic module configuration
+ */
 export interface BetterAuthModuleAsyncOptions
   extends Pick<ModuleMetadata, 'imports'> {
+  /** Use an existing provider that implements BetterAuthOptionsFactory */
   useExisting?: Type<BetterAuthOptionsFactory>;
+  /** Use a class that implements BetterAuthOptionsFactory */
   useClass?: Type<BetterAuthOptionsFactory>;
+  /** Use a factory function to create options */
   useFactory?: (
     ...args: any[]
   ) => Promise<BetterAuthModuleOptions> | BetterAuthModuleOptions;
+  /** Dependencies to inject into the factory function */
   inject?: any[];
 }
