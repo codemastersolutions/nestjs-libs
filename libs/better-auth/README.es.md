@@ -30,10 +30,13 @@ Nuestro objetivo es proporcionar a la comunidad NestJS una solución de autentic
 
 - 🚀 **Integración Fácil**: Configuración simple con inyección de dependencias de NestJS
 - 🔒 **Seguro por Defecto**: Características de seguridad integradas y mejores prácticas
+- 🛡️ **Rate Limiting**: Rate limiting integrado con límites configurables
 - 🛠️ **Configuración Flexible**: Soporte para configuración síncrona y asíncrona
-- 🌐 **Soporte de Middleware**: Manejo automático de rutas para endpoints de autenticación
+- 🌐 **Soporte Universal de Frameworks**: Funciona perfectamente con Express.js y Fastify
 - 📦 **Soporte TypeScript**: Soporte completo de TypeScript con definiciones de tipos
 - 🔧 **Personalizable**: Middleware, CORS y manejo de excepciones configurables
+- ⚡ **Optimizado para Rendimiento**: Manejo eficiente de solicitudes y validación
+- 🔐 **Seguridad Mejorada**: Validación de host header, sanitización de solicitudes y validación de entrada
 
 ## Instalación
 
@@ -43,6 +46,61 @@ npm install @cms-nestjs-libs/better-auth better-auth
 yarn add @cms-nestjs-libs/better-auth better-auth
 # o
 pnpm add @cms-nestjs-libs/better-auth better-auth
+```
+
+## Variables de Entorno
+
+La biblioteca soporta configuración a través de variables de entorno para mayor flexibilidad y seguridad:
+
+### Configuración Principal
+
+```env
+# Configuración de la base de datos
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/mi_app
+
+# Configuración de Better Auth
+BETTER_AUTH_SECRET=tu-secreto-super-seguro-aqui
+BETTER_AUTH_BASE_URL=http://localhost:3000
+```
+
+### Configuración de Rate Limiting
+
+```env
+# Rate Limiting (opcional)
+RATE_LIMIT_WINDOW_MS=900000        # 15 minutos en milisegundos
+RATE_LIMIT_MAX_REQUESTS=100        # Máximo 100 solicitudes por ventana
+DISABLE_RATE_LIMIT=false           # Establecer en 'true' para deshabilitar
+```
+
+### Configuración de Seguridad
+
+```env
+# Seguridad (opcional)
+ENABLE_REQUEST_VALIDATION=true     # Habilitar validación de solicitudes
+TRUSTED_HOSTS=localhost,mi-dominio.com,*.mi-app.com  # Hosts confiables separados por comas
+```
+
+### Ejemplo de archivo .env
+
+```env
+# Base de datos
+DATABASE_URL=postgresql://usuario:contraseña@localhost:5432/mi_app
+
+# Better Auth
+BETTER_AUTH_SECRET=mi-secreto-super-seguro-de-32-caracteres
+BETTER_AUTH_BASE_URL=http://localhost:3000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+DISABLE_RATE_LIMIT=false
+
+# Seguridad
+ENABLE_REQUEST_VALIDATION=true
+TRUSTED_HOSTS=localhost,127.0.0.1,mi-dominio.com
+
+# Entorno
+NODE_ENV=development
 ```
 
 ## Scripts Disponibles
@@ -148,6 +206,11 @@ export class AuthController {
 | `disableBodyParser`         | `boolean` | `false`       | Deshabilitar analizador de cuerpo           |
 | `globalPrefix`              | `string`  | `undefined`   | Prefijo global para rutas                   |
 | `disableMiddleware`         | `boolean` | `false`       | Deshabilitar el middleware ⚠️               |
+| `rateLimitWindowMs`         | `number`  | `900000`      | Ventana de tiempo para rate limiting (ms)   |
+| `rateLimitMaxRequests`      | `number`  | `100`         | Máximo de solicitudes por ventana           |
+| `disableRateLimit`          | `boolean` | `false`       | Deshabilitar rate limiting                  |
+| `enableRequestValidation`   | `boolean` | `true`        | Habilitar validación de solicitudes         |
+| `trustedHosts`              | `string[]`| `[]`          | Lista de hosts confiables                   |
 
 ⚠️ **Advertencia de Seguridad**: Las opciones marcadas con ⚠️ tienen implicaciones de seguridad. Deshabilite estas características solo si comprende los riesgos y tiene mecanismos de protección alternativos.
 
@@ -184,6 +247,41 @@ interface UniversalRequest {
   get?: (header: string) => string | undefined;
 }
 ```
+
+## Configuración de Rate Limiting
+
+La biblioteca incluye rate limiting integrado para proteger tu aplicación contra abuso:
+
+### Configuración Básica
+
+```typescript
+BetterAuthModule.forRoot({
+  auth: betterAuth({ /* tu configuración */ }),
+  rateLimitWindowMs: 900000,     // 15 minutos
+  rateLimitMaxRequests: 100,     // 100 solicitudes por ventana
+  disableRateLimit: false,       // Habilitar rate limiting
+})
+```
+
+### Configuración con Variables de Entorno
+
+```typescript
+BetterAuthModule.forRootAsync({
+  useFactory: () => ({
+    auth: betterAuth({ /* tu configuración */ }),
+    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
+    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+    disableRateLimit: process.env.DISABLE_RATE_LIMIT === 'true',
+  }),
+})
+```
+
+### Comportamiento del Rate Limiting
+
+- **Ventana Deslizante**: Usa una ventana de tiempo deslizante para contar solicitudes
+- **Por IP**: Rate limiting aplicado por dirección IP del cliente
+- **Respuesta HTTP 429**: Retorna "Too Many Requests" cuando se excede el límite
+- **Headers Informativos**: Incluye headers `X-RateLimit-*` en las respuestas
 
 ## Características de Seguridad
 
@@ -225,7 +323,7 @@ export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
 
 ## Configuración Avanzada
 
-### Configuración Asíncrona
+### Configuración Asíncrona con Variables de Entorno
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -244,14 +342,79 @@ import { betterAuth } from 'better-auth';
             provider: 'postgresql',
             url: configService.get('DATABASE_URL'),
           },
-          secret: configService.get('AUTH_SECRET'),
+          secret: configService.get('BETTER_AUTH_SECRET'),
+          baseURL: configService.get('BETTER_AUTH_BASE_URL'),
           emailAndPassword: {
             enabled: true,
           },
-          // Otra configuración del entorno
         }),
+        // Configuración de Rate Limiting
+        rateLimitWindowMs: parseInt(configService.get('RATE_LIMIT_WINDOW_MS')) || 900000,
+        rateLimitMaxRequests: parseInt(configService.get('RATE_LIMIT_MAX_REQUESTS')) || 100,
+        disableRateLimit: configService.get('DISABLE_RATE_LIMIT') === 'true',
+        // Configuración de Seguridad
+        enableRequestValidation: configService.get('ENABLE_REQUEST_VALIDATION') !== 'false',
+        trustedHosts: configService.get('TRUSTED_HOSTS')?.split(',') || [],
         globalPrefix: configService.get('API_PREFIX', 'api'),
       }),
+      inject: [ConfigService],
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Ejemplo de Configuración de Producción
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BetterAuthModule } from '@cms-nestjs-libs/better-auth';
+import { betterAuth } from 'better-auth';
+import { database } from 'better-auth/adapters/drizzle';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+    }),
+    BetterAuthModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const connectionString = configService.get('DATABASE_URL');
+        const client = postgres(connectionString);
+        const db = drizzle(client);
+
+        return {
+          auth: betterAuth({
+            database: database(db),
+            secret: configService.get('BETTER_AUTH_SECRET'),
+            baseURL: configService.get('BETTER_AUTH_BASE_URL'),
+            emailAndPassword: {
+              enabled: true,
+              requireEmailVerification: true,
+            },
+            session: {
+              expiresIn: 60 * 60 * 24 * 7, // 7 días
+              updateAge: 60 * 60 * 24, // 1 día
+            },
+          }),
+          // Configuración de seguridad para producción
+          rateLimitWindowMs: 900000, // 15 minutos
+          rateLimitMaxRequests: 50,  // Más restrictivo en producción
+          disableRateLimit: false,
+          enableRequestValidation: true,
+          trustedHosts: [
+            configService.get('PRODUCTION_DOMAIN'),
+            configService.get('STAGING_DOMAIN'),
+          ].filter(Boolean),
+          disableExceptionFilter: false,
+          disableTrustedOriginsCors: false,
+        };
+      },
       inject: [ConfigService],
     }),
   ],
@@ -422,25 +585,188 @@ async function bootstrap() {
 bootstrap();
 ```
 
+### Configuración Completa de Fastify
+
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter()
+  );
+
+  // Registrar plugin middie para compatibilidad con middleware
+  await app.register(require('@fastify/middie'));
+
+  // Configurar CORS
+  await app.register(require('@fastify/cors'), {
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  });
+
+  await app.listen(3001, '0.0.0.0');
+}
+bootstrap();
+```
+
 ### Guard de Autenticación Personalizado
 
 ```typescript
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { BetterAuthService } from '@cms-nestjs-libs/better-auth';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private betterAuthService: BetterAuthService) {}
+  constructor(
+    private betterAuthService: BetterAuthService,
+    private reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Verificar si la ruta es pública
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
+
     const request = context.switchToHttp().getRequest();
 
     try {
       const session = await this.betterAuthService.getSession(request);
-      return !!session?.user;
+      if (session?.user) {
+        request.user = session.user;
+        request.session = session;
+        return true;
+      }
+      return false;
     } catch {
       return false;
     }
+  }
+}
+```
+
+### Guard de Autorización Basado en Roles
+
+```typescript
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { BetterAuthService } from '@cms-nestjs-libs/better-auth';
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(
+    private betterAuthService: BetterAuthService,
+    private reflector: Reflector,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!requiredRoles) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest();
+    const session = await this.betterAuthService.getSession(request);
+
+    if (!session?.user) {
+      return false;
+    }
+
+    // Asumiendo que el usuario tiene un campo 'role' o 'roles'
+    const userRoles = Array.isArray(session.user.role) 
+      ? session.user.role 
+      : [session.user.role];
+
+    return requiredRoles.some(role => userRoles.includes(role));
+  }
+}
+```
+
+### Decoradores Personalizados
+
+```typescript
+import { SetMetadata, createParamDecorator, ExecutionContext } from '@nestjs/common';
+
+// Decorador para rutas públicas
+export const Public = () => SetMetadata('isPublic', true);
+
+// Decorador para roles requeridos
+export const Roles = (...roles: string[]) => SetMetadata('roles', roles);
+
+// Decorador para obtener el usuario actual
+export const CurrentUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.user;
+  },
+);
+
+// Decorador para obtener la sesión actual
+export const CurrentSession = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.session;
+  },
+);
+```
+
+### Ejemplo de Controlador Completo
+
+```typescript
+import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from './guards/auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Public, Roles, CurrentUser, CurrentSession } from './decorators';
+
+@Controller('users')
+@UseGuards(AuthGuard, RolesGuard)
+export class UsersController {
+  @Get('profile')
+  getProfile(@CurrentUser() user: any, @CurrentSession() session: any) {
+    return {
+      user,
+      sessionInfo: {
+        id: session.id,
+        expiresAt: session.expiresAt,
+      },
+    };
+  }
+
+  @Get('public-info')
+  @Public()
+  getPublicInfo() {
+    return { message: 'Esta información es pública' };
+  }
+
+  @Get('admin-only')
+  @Roles('admin')
+  getAdminData(@CurrentUser() user: any) {
+    return {
+      message: 'Datos solo para administradores',
+      adminUser: user,
+    };
+  }
+
+  @Post('moderator-action')
+  @Roles('admin', 'moderator')
+  performModeratorAction(@CurrentUser() user: any) {
+    return {
+      message: 'Acción realizada por moderador/admin',
+      performedBy: user.id,
+    };
   }
 }
 ```
@@ -520,13 +846,237 @@ app.enableCors({ /* config */ });
 
 ## Solución de Problemas
 
-### Problemas Comunes
+### Problemas de Instalación del Módulo
 
-1. **Módulo no encontrado**: Asegúrate de que tanto `@cms-nestjs-libs/better-auth` como `better-auth` estén instalados
-2. **Conexión de base de datos**: Verifica tu configuración de base de datos
-3. **Errores de CORS**: Revisa tu configuración de CORS (ver sección CORS arriba)
-4. **OpenAPI "fail to fetch"**: Asegúrate de que CORS esté configurado adecuadamente con método OPTIONS permitido
-5. **Conflictos de middleware**: Asegúrate de que no haya middleware conflictivo en las rutas de autenticación
+**Error**: `Cannot find module '@cms-nestjs-libs/better-auth'`
+
+```bash
+# Solución: Instalar todas las dependencias requeridas
+npm install @cms-nestjs-libs/better-auth better-auth
+# o
+yarn add @cms-nestjs-libs/better-auth better-auth
+```
+
+### Problemas de Conexión a Base de Datos
+
+**Error**: `Database connection failed`
+
+```typescript
+// Solución: Verificar configuración de base de datos
+BetterAuthModule.forRootAsync({
+  useFactory: (configService: ConfigService) => ({
+    auth: betterAuth({
+      database: {
+        provider: 'postgresql', // o 'mysql', 'sqlite'
+        url: configService.get('DATABASE_URL'), // Verificar que esta variable exista
+      },
+      // ... resto de configuración
+    }),
+  }),
+  inject: [ConfigService],
+})
+```
+
+### Problemas de CORS
+
+**Error**: `CORS policy: No 'Access-Control-Allow-Origin' header`
+
+```typescript
+// Solución: Configurar CORS correctamente
+app.enableCors({
+  origin: [
+    'http://localhost:3000',
+    'https://tu-dominio.com',
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With',
+  ],
+});
+```
+
+### Problemas de Rate Limiting
+
+**Error**: `Too Many Requests (429)`
+
+```typescript
+// Solución: Ajustar configuración de rate limiting
+BetterAuthModule.forRoot({
+  auth: betterAuth({ /* configuración */ }),
+  rateLimitWindowMs: 900000,     // Aumentar ventana de tiempo
+  rateLimitMaxRequests: 200,     // Aumentar límite de solicitudes
+  disableRateLimit: true,        // Deshabilitar temporalmente para debugging
+})
+```
+
+### Problemas de Gestión de Sesiones
+
+**Error**: `Session not found` o `Invalid session`
+
+```typescript
+// Solución: Verificar configuración de cookies y sesiones
+const session = await this.betterAuthService.getSession(request);
+if (!session) {
+  // Manejar caso de sesión no válida
+  throw new UnauthorizedException('Sesión no válida');
+}
+
+// Verificar configuración de Better Auth
+betterAuth({
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 días
+    updateAge: 60 * 60 * 24,     // 1 día
+  },
+  // ... resto de configuración
+})
+```
+
+### Problemas de Compatibilidad con Fastify
+
+**Error**: `Middleware not working with Fastify`
+
+```typescript
+// Solución: Registrar plugin middie
+import { FastifyAdapter } from '@nestjs/platform-fastify';
+
+async function bootstrap() {
+  const app = await NestFactory.create(
+    AppModule,
+    new FastifyAdapter()
+  );
+
+  // IMPORTANTE: Registrar middie antes de usar middleware
+  await app.register(require('@fastify/middie'));
+
+  await app.listen(3000);
+}
+```
+
+### Problemas de Variables de Entorno
+
+**Error**: `Environment variables not loaded`
+
+```typescript
+// Solución: Configurar ConfigModule correctamente
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'], // Verificar rutas de archivos
+      load: [() => ({
+        // Valores por defecto
+        BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'default-secret',
+        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/db',
+      })],
+    }),
+    // ... resto de módulos
+  ],
+})
+```
+
+### Problemas de Tipos TypeScript
+
+**Error**: `Type errors with Better Auth types`
+
+```typescript
+// Solución: Crear tipos personalizados
+// types/better-auth.d.ts
+declare module 'better-auth' {
+  interface User {
+    id: string;
+    email: string;
+    name?: string;
+    role?: string | string[];
+    // Agregar campos personalizados aquí
+  }
+
+  interface Session {
+    user: User;
+    id: string;
+    expiresAt: Date;
+    // Agregar campos de sesión personalizados aquí
+  }
+}
+```
+
+### Problemas de Integración OpenAPI/Swagger
+
+**Error**: `OpenAPI documentation not working`
+
+```typescript
+// Solución: Configurar Swagger correctamente
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+const config = new DocumentBuilder()
+  .setTitle('API con Better Auth')
+  .setDescription('API con autenticación')
+  .setVersion('1.0')
+  .addBearerAuth() // Para autenticación Bearer
+  .addCookieAuth('session') // Para autenticación por cookies
+  .build();
+
+const document = SwaggerModule.createDocument(app, config);
+SwaggerModule.setup('api/docs', app, document, {
+  swaggerOptions: {
+    persistAuthorization: true,
+  },
+});
+```
+
+### Problemas de Rendimiento
+
+**Error**: `Slow authentication responses`
+
+```typescript
+// Solución: Optimizar configuración
+BetterAuthModule.forRoot({
+  auth: betterAuth({
+    // Usar pool de conexiones para base de datos
+    database: {
+      provider: 'postgresql',
+      url: process.env.DATABASE_URL,
+      pool: {
+        min: 2,
+        max: 10,
+      },
+    },
+    // Configurar cache de sesiones
+    session: {
+      expiresIn: 60 * 60 * 24 * 7,
+      updateAge: 60 * 60 * 24,
+    },
+  }),
+  // Optimizar rate limiting
+  rateLimitWindowMs: 60000,  // Ventana más corta
+  rateLimitMaxRequests: 1000, // Límite más alto
+})
+```
+
+### Modo Debug
+
+Para habilitar logging detallado:
+
+```typescript
+// En tu archivo main.ts
+if (process.env.NODE_ENV === 'development') {
+  // Habilitar logging detallado
+  process.env.DEBUG = 'better-auth:*';
+}
+```
+
+### Obtener Ayuda
+
+Si continúas teniendo problemas:
+
+1. **Revisa los logs**: Habilita el modo debug para obtener más información
+2. **Verifica la documentación**: [Better Auth Docs](https://www.better-auth.com/)
+3. **Busca issues existentes**: [GitHub Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
+4. **Crea un nuevo issue**: Incluye código de reproducción y logs de error
 
 ## Contribuyendo
 

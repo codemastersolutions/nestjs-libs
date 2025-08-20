@@ -30,10 +30,13 @@ Nosso objetivo é fornecer à comunidade NestJS uma solução de autenticação 
 
 - 🚀 **Integração Fácil**: Configuração simples com injeção de dependência do NestJS
 - 🔒 **Seguro por Padrão**: Recursos de segurança integrados e melhores práticas
+- 🛡️ **Rate Limiting**: Rate limiting integrado com limites configuráveis
 - 🛠️ **Configuração Flexível**: Suporte para configuração síncrona e assíncrona
-- 🌐 **Suporte a Middleware**: Manipulação automática de rotas para endpoints de autenticação
+- 🌐 **Suporte Universal a Frameworks**: Funciona perfeitamente com Express.js e Fastify
 - 📦 **Suporte TypeScript**: Suporte completo ao TypeScript com definições de tipos
 - 🔧 **Personalizável**: Middleware, CORS e tratamento de exceções configuráveis
+- ⚡ **Otimizado para Performance**: Manipulação eficiente de requisições e validação
+- 🔐 **Segurança Aprimorada**: Validação de host header, sanitização de requisições e validação de entrada
 
 ## Instalação
 
@@ -43,6 +46,55 @@ npm install @cms-nestjs-libs/better-auth better-auth
 yarn add @cms-nestjs-libs/better-auth better-auth
 # ou
 pnpm add @cms-nestjs-libs/better-auth better-auth
+```
+
+## Variáveis de Ambiente
+
+A biblioteca suporta várias variáveis de ambiente para configuração:
+
+### Configuração Principal
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `NODE_ENV` | Modo do ambiente | `development` | `production`, `test`, `development` |
+| `AUTH_SECRET` | Chave secreta para autenticação | **Obrigatório** | `sua-chave-super-secreta-aqui` |
+| `DATABASE_URL` | String de conexão do banco de dados | **Obrigatório** | `postgresql://user:pass@localhost:5432/db` |
+| `API_PREFIX` | Prefixo global da API | `api` | `v1`, `api/v2` |
+
+### Configuração de Rate Limiting
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `RATE_LIMIT_WINDOW_MS` | Janela de rate limit em milissegundos | `900000` (15 min) | `60000` (1 min) |
+| `RATE_LIMIT_MAX_REQUESTS` | Máximo de requisições por janela | `100` | `50`, `200` |
+| `RATE_LIMIT_ENABLED` | Habilitar/desabilitar rate limiting | `true` | `false` |
+
+### Configuração de Segurança
+
+| Variável | Descrição | Padrão | Exemplo |
+|----------|-----------|--------|----------|
+| `CORS_ORIGIN` | Origens CORS permitidas (separadas por vírgula) | `http://localhost:3000` | `https://app.com,https://admin.app.com` |
+| `TRUSTED_HOSTS` | Padrões de hosts confiáveis (separados por vírgula) | `localhost` | `app.com,*.app.com` |
+| `ENABLE_REQUEST_VALIDATION` | Habilitar validação de requisições | `true` | `false` |
+
+### Exemplo de Arquivo .env
+
+```env
+# Configuração Principal
+NODE_ENV=production
+AUTH_SECRET=sua-chave-super-secreta-aqui-torne-ela-longa-e-aleatoria
+DATABASE_URL=postgresql://username:password@localhost:5432/seu_banco
+API_PREFIX=api/v1
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_ENABLED=true
+
+# Segurança
+CORS_ORIGIN=https://seuapp.com,https://admin.seuapp.com
+TRUSTED_HOSTS=seuapp.com,*.seuapp.com
+ENABLE_REQUEST_VALIDATION=true
 ```
 
 ## Scripts Disponíveis
