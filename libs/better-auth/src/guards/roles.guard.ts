@@ -48,7 +48,7 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredRoles) {
+    if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
 
@@ -60,6 +60,14 @@ export class RolesGuard implements CanActivate {
     }
 
     const userRoles = user.roles || [];
+
+    // Ensure userRoles is an array
+    if (!Array.isArray(userRoles)) {
+      throw new ForbiddenException(
+        `Invalid user roles format. Expected array, got ${typeof userRoles}`,
+      );
+    }
+
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole) {

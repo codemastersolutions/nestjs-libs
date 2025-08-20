@@ -43,7 +43,13 @@ export class RateLimiter {
 
     const now = Date.now();
     const windowMs = options.rateLimitWindowMs || 15 * 60 * 1000; // 15 minutes default
-    const maxRequests = options.rateLimitMax || 100; // 100 requests default
+    const maxRequests =
+      options.rateLimitMax !== undefined ? options.rateLimitMax : 100; // 100 requests default
+
+    // Handle zero or negative limits - should always rate limit
+    if (maxRequests <= 0) {
+      return true;
+    }
 
     const key = this.sanitizeIdentifier(identifier);
     const requestData = this.requests.get(key);

@@ -25,14 +25,13 @@ export class RequestValidator {
       return 'localhost';
     }
 
-    // Enhanced regex for host validation
+    // Enhanced regex for host validation (including port)
     const hostRegex =
-      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))*(?:[0-9]{1,5})?$/;
+      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*(?::[0-9]{1,5})?$|^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(?::[0-9]{1,5})?$/;
 
     if (!hostRegex.test(rawHost)) {
-      logger.security('Suspicious host header detected', {
-        originalHost: rawHost,
-        sanitizedHost: 'localhost',
+      logger.security('Host header contains suspicious pattern', {
+        host: rawHost,
       });
       return 'localhost';
     }
@@ -65,7 +64,7 @@ export class RequestValidator {
    * @returns Validated body string or undefined
    */
   validateRequestBody(body: any, contentType?: string): string | undefined {
-    if (!body) return undefined;
+    if (body === null || body === undefined || body === '') return undefined;
 
     // Validate content type
     const allowedContentTypes = this.options.allowedContentTypes || [
@@ -145,8 +144,8 @@ export class RequestValidator {
     }
 
     for (const [key, value] of headerEntries) {
-      // Validate header name
-      if (!/^[a-zA-Z0-9!#$&'*+.^_`|~-]+$/.test(key)) {
+      // Validate header name length and format
+      if (key.length > 256 || !/^[a-zA-Z0-9!#$&'*+.^_`|~-]+$/.test(key)) {
         logger.security('Invalid header name detected', { headerName: key });
         continue; // Skip invalid header names
       }
@@ -189,8 +188,8 @@ export class RequestValidator {
 
     // Check for path traversal attempts
     const pathTraversalPatterns = [
-      new RegExp('\\.\\.\\/g'),
-      new RegExp('\\.\\.\\\\/g'),
+      /\.\.\//g,
+      /\.\.\\/g,
       /%2e%2e%2f/gi,
       /%2e%2e%5c/gi,
       /\.\.%2f/gi,
