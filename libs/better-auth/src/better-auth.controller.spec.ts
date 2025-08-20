@@ -156,5 +156,202 @@ describe('BetterAuthController', () => {
       expect(service.handleRequest).toHaveBeenCalled();
       expect(mockResponse.send).toHaveBeenCalled();
     });
+
+    it('should handle service errors and throw when exception filter is not disabled', async () => {
+      const mockRequest = {
+        method: 'POST',
+        url: '/api/auth/error',
+        headers: { host: 'localhost' },
+      };
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const error = new Error('Service error');
+      jest.spyOn(service, 'handleRequest').mockRejectedValue(error);
+      jest.spyOn(service, 'getOptions').mockReturnValue({ ...mockOptions, disableExceptionFilter: false });
+
+      await expect(controller.handleAuth(mockRequest as any, mockResponse as any, {})).rejects.toThrow('Service error');
+    });
+
+    it('should handle service errors and return 500 when exception filter is disabled (Express)', async () => {
+      const mockRequest = {
+        method: 'POST',
+        url: '/api/auth/error',
+        headers: { host: 'localhost' },
+        originalUrl: '/api/auth/error',
+        protocol: 'http',
+      };
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const error = new Error('Service error');
+      jest.spyOn(service, 'handleRequest').mockRejectedValue(error);
+      jest.spyOn(service, 'getOptions').mockReturnValue({ ...mockOptions, disableExceptionFilter: true });
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
+    });
+
+    it('should handle service errors and return 500 when exception filter is disabled (Fastify)', async () => {
+      const mockRequest = {
+        method: 'POST',
+        url: '/api/auth/error',
+        headers: { host: 'localhost' },
+      };
+      const mockResponse = {
+        code: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const error = new Error('Service error');
+      jest.spyOn(service, 'handleRequest').mockRejectedValue(error);
+      jest.spyOn(service, 'getOptions').mockReturnValue({ ...mockOptions, disableExceptionFilter: true });
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.code).toHaveBeenCalledWith(500);
+      expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
+    });
+
+    it('should return 404 when no response from Better Auth (Express)', async () => {
+      const mockRequest = {
+        method: 'GET',
+        url: '/api/auth/nonexistent',
+        headers: { host: 'localhost' },
+        originalUrl: '/api/auth/nonexistent',
+        protocol: 'http',
+      };
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(undefined as any);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.send).toHaveBeenCalledWith('Not Found');
+    });
+
+    it('should return 404 when no response from Better Auth (Fastify)', async () => {
+      const mockRequest = {
+        method: 'GET',
+        url: '/api/auth/nonexistent',
+        headers: { host: 'localhost' },
+      };
+      const mockResponse = {
+        code: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(undefined as any);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.code).toHaveBeenCalledWith(404);
+      expect(mockResponse.send).toHaveBeenCalledWith('Not Found');
+    });
+  });
+
+  describe('Response handling', () => {
+    it('should handle Fastify responses with body', async () => {
+      const mockRequest = {
+        method: 'GET',
+        url: '/api/auth/session',
+        headers: { host: 'localhost' },
+      };
+      const mockResponse = {
+        code: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const mockHandlerResponse = new Response(JSON.stringify({ user: 'test' }), { 
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      });
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(mockHandlerResponse);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.code).toHaveBeenCalledWith(200);
+      expect(mockResponse.send).toHaveBeenCalled();
+    });
+
+    it('should handle Fastify responses without body', async () => {
+      const mockRequest = {
+        method: 'GET',
+        url: '/api/auth/session',
+        headers: { host: 'localhost' },
+      };
+      const mockResponse = {
+        code: jest.fn().mockReturnThis(),
+        header: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const mockHandlerResponse = new Response(null, { 
+        status: 204,
+        headers: { 'content-type': 'application/json' }
+      });
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(mockHandlerResponse);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(mockResponse.code).toHaveBeenCalledWith(204);
+      expect(mockResponse.send).toHaveBeenCalledWith('');
+    });
+
+    it('should handle requests without host header', async () => {
+      const mockRequest = {
+        method: 'GET',
+        url: '/api/auth/session',
+        headers: {},
+        originalUrl: '/api/auth/session',
+        protocol: 'http',
+      };
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        setHeader: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const mockHandlerResponse = new Response('{}', { status: 200 });
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(mockHandlerResponse);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(service.handleRequest).toHaveBeenCalled();
+      expect(mockResponse.send).toHaveBeenCalled();
+    });
+
+    it('should handle requests without method', async () => {
+      const mockRequest = {
+        url: '/api/auth/session',
+        headers: { host: 'localhost' },
+        originalUrl: '/api/auth/session',
+        protocol: 'http',
+      };
+      const mockResponse = {
+        status: jest.fn().mockReturnThis(),
+        setHeader: jest.fn().mockReturnThis(),
+        send: jest.fn(),
+      };
+      
+      const mockHandlerResponse = new Response('{}', { status: 200 });
+      jest.spyOn(service, 'handleRequest').mockResolvedValue(mockHandlerResponse);
+
+      await controller.handleAuth(mockRequest as any, mockResponse as any, {});
+
+      expect(service.handleRequest).toHaveBeenCalled();
+      expect(mockResponse.send).toHaveBeenCalled();
+    });
   });
 });

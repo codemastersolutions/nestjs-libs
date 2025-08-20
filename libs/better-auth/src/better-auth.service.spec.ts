@@ -443,6 +443,20 @@ describe('BetterAuthService', () => {
     });
   });
 
+  describe('RequestValidator integration', () => {
+    it('should use RequestValidator for host validation', () => {
+      const validator = new RequestValidator(mockOptions);
+      const result = validator.validateHostHeader('example.com');
+      expect(result).toBe('example.com');
+    });
+
+    it('should handle invalid host headers', () => {
+      const validator = new RequestValidator(mockOptions);
+      const result = validator.validateHostHeader('<script>alert("xss")</script>');
+      expect(result).toBe('localhost');
+    });
+  });
+
   describe('Rate limiting integration', () => {
     it('should throw error when rate limit is exceeded', async () => {
       const mockRequest = {

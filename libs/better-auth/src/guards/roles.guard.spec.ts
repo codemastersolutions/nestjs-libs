@@ -351,6 +351,36 @@ describe('RolesGuard', () => {
       expect(() => {
         guard.canActivate(mockExecutionContext as ExecutionContext);
       }).toThrow(ForbiddenException);
+
+      expect(() => {
+        guard.canActivate(mockExecutionContext as ExecutionContext);
+      }).toThrow('Invalid user roles format. Expected array, got string');
+    });
+
+    it('should handle roles as number instead of array', () => {
+      mockRequest.user.roles = 123 as any;
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+
+      expect(() => {
+        guard.canActivate(mockExecutionContext as ExecutionContext);
+      }).toThrow(ForbiddenException);
+
+      expect(() => {
+        guard.canActivate(mockExecutionContext as ExecutionContext);
+      }).toThrow('Invalid user roles format. Expected array, got number');
+    });
+
+    it('should handle roles as object instead of array', () => {
+      mockRequest.user.roles = { admin: true } as any;
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+
+      expect(() => {
+        guard.canActivate(mockExecutionContext as ExecutionContext);
+      }).toThrow(ForbiddenException);
+
+      expect(() => {
+        guard.canActivate(mockExecutionContext as ExecutionContext);
+      }).toThrow('Invalid user roles format. Expected array, got object');
     });
 
     it('should handle roles with non-string values', () => {

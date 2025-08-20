@@ -109,6 +109,90 @@ describe('AuthGuard', () => {
     );
   });
 
+  it('should work without reflector (optional dependency)', async () => {
+    const guardWithoutReflector = new AuthGuard(betterAuthService);
+    const mockContext = createMockExecutionContext();
+    const mockSession = { 
+      session: { id: 'session-1' },
+      user: { id: '1', email: 'test@example.com' } 
+    };
+
+    betterAuthService.getSession.mockResolvedValue(mockSession);
+
+    const result = await guardWithoutReflector.canActivate(mockContext);
+
+    expect(result).toBe(true);
+  });
+
+  it('should deny access without reflector when user is not authenticated', async () => {
+    const guardWithoutReflector = new AuthGuard(betterAuthService);
+    const mockContext = createMockExecutionContext();
+
+    betterAuthService.getSession.mockResolvedValue(null);
+
+    await expect(guardWithoutReflector.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should handle undefined session user', async () => {
+    const mockContext = createMockExecutionContext();
+    const mockSession = { 
+      session: { id: 'session-1' },
+      user: null 
+    };
+
+    reflector.getAllAndOverride.mockReturnValue(false);
+    betterAuthService.getSession.mockResolvedValue(mockSession);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('should inject user and session into request when authenticated', async () => {
+    const mockContext = createMockExecutionContext();
+    const mockSession = { 
+      session: { id: 'session-1' },
+      user: { id: '1', email: 'test@example.com' } 
+    };
+    const mockRequest = mockContext.switchToHttp().getRequest();
+
+    reflector.getAllAndOverride.mockReturnValue(false);
+    betterAuthService.getSession.mockResolvedValue(mockSession);
+
+    await guard.canActivate(mockContext);
+
+    expect(mockRequest.user).toEqual(mockSession.user);
+    expect(mockRequest.session).toEqual(mockSession);
+  });
+
+  it('should throw UnauthorizedException with specific message for invalid token', async () => {
+    const mockContext = createMockExecutionContext();
+
+    reflector.getAllAndOverride.mockReturnValue(false);
+    betterAuthService.getSession.mockRejectedValue(new Error('Invalid token'));
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      new UnauthorizedException('Invalid authentication token'),
+    );
+  });
+
+  it('should throw UnauthorizedException with specific message for unauthenticated user', async () => {
+    const mockContext = createMockExecutionContext();
+    const mockSession = { 
+      session: { id: 'session-1' },
+      user: null // No user in session
+    };
+
+    reflector.getAllAndOverride.mockReturnValue(false);
+    betterAuthService.getSession.mockResolvedValue(mockSession);
+
+    await expect(guard.canActivate(mockContext)).rejects.toThrow(
+      new UnauthorizedException('Invalid authentication token'),
+    );
+  });
+
   function createMockExecutionContext(): ExecutionContext {
     const mockRequest = {
       headers: {},

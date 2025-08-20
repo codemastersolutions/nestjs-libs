@@ -246,6 +246,70 @@ describe('BetterAuthLogger', () => {
       expect(sanitized.data.ref.name).toBe('obj2');
       expect(sanitized.data.ref.ref).toBe('[Circular Reference]');
     });
+
+    it('should redact sensitive keys in nested objects', () => {
+      const contextWithNestedSensitive = {
+        user: {
+          id: '123',
+          name: 'John',
+          password: 'secret123',
+          profile: {
+            email: 'john@example.com',
+            apiKey: 'sensitive-key',
+            preferences: {
+              theme: 'dark',
+              token: 'user-token'
+            }
+          }
+        },
+        config: {
+          database: {
+            host: 'localhost',
+            secret: 'db-secret'
+          }
+        }
+      };
+
+      const sanitized = (loggerInstance as any).sanitizeContext(
+        contextWithNestedSensitive,
+      );
+
+      // Test line 169 - nested object sanitization
+      expect(sanitized.user.id).toBe('123');
+      expect(sanitized.user.name).toBe('John');
+      expect(sanitized.user.password).toBe('[REDACTED]');
+      expect(sanitized.user.profile.email).toBe('john@example.com');
+      expect(sanitized.user.profile.apiKey).toBe('[REDACTED]');
+      expect(sanitized.user.profile.preferences.theme).toBe('dark');
+      expect(sanitized.user.profile.preferences.token).toBe('[REDACTED]');
+      
+      // Test lines 204-211 - top-level object sanitization
+      expect(sanitized.config.database.host).toBe('localhost');
+      expect(sanitized.config.database.secret).toBe('[REDACTED]');
+    });
+
+    it('should handle mixed sensitive and non-sensitive keys at root level', () => {
+      const mixedContext = {
+        publicData: 'visible',
+        password: 'secret',
+        userId: '12345',
+        authorization: 'Bearer token',
+        metadata: {
+          version: '1.0',
+          key: 'sensitive-key'
+        }
+      };
+
+      const sanitized = (loggerInstance as any).sanitizeContext(mixedContext);
+
+      // Test lines 204-211 coverage
+      expect(sanitized.publicData).toBe('visible');
+      expect(sanitized.password).toBe('[REDACTED]');
+      expect(sanitized.userId).toBe('12345');
+      expect(sanitized.authorization).toBe('[REDACTED]');
+      expect(sanitized.metadata.version).toBe('1.0');
+      expect(sanitized.metadata.key).toBe('[REDACTED]');
+    });
   });
 
   describe('debug', () => {

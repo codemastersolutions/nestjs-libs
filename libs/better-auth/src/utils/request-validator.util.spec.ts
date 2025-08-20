@@ -103,6 +103,47 @@ describe('RequestValidator', () => {
         );
       });
     });
+
+    it('should return localhost for hosts with suspicious patterns - covering lines 51-58', () => {
+      // Test specific patterns that trigger the suspicious pattern detection
+      const edgeCaseSuspiciousHosts = [
+        'host.com\x00null',
+        'host.com\r\ninjection',
+        'host.com\tinjection',
+        'host.com%0ainjection',
+        'host.com%0dinjection',
+        'host.com%00injection',
+      ];
+
+      edgeCaseSuspiciousHosts.forEach(host => {
+        const result = validator.validateHostHeader(host);
+        // Should return 'localhost' when suspicious pattern is detected (line 52)
+        expect(result).toBe('localhost');
+        expect(loggerSecuritySpy).toHaveBeenCalledWith(
+          'Host header contains suspicious pattern',
+          expect.objectContaining({
+            host,
+          })
+        );
+      });
+    });
+
+    it('should return rawHost for valid hosts - covering lines 55-58', () => {
+      // Test valid hosts that should pass through without modification
+      const validHosts = [
+        'valid-host.com',
+        'sub.domain.com',
+        'localhost',
+        '127.0.0.1',
+        'api.example.org',
+      ];
+
+      validHosts.forEach(host => {
+        const result = validator.validateHostHeader(host);
+        // Should return the original rawHost when no suspicious patterns (line 58)
+        expect(result).toBe(host);
+      });
+    });
   });
 
   describe('validateRequestBody', () => {
@@ -216,6 +257,28 @@ describe('RequestValidator', () => {
       expect(() => {
         validatorWithoutOptions.validateRequestBody(largeBody);
       }).toThrow('Request body too large');
+    });
+
+    it('should handle validateRequestBody with no content type specified', () => {
+      const body = { test: 'data', value: 123 };
+      
+      // Test line 59-62 coverage - validateRequestBody method signature and early return
+      const result = validator.validateRequestBody(body);
+      expect(result).toBe(JSON.stringify(body));
+    });
+
+    it('should handle edge cases in validateRequestBody serialization', () => {
+      // Test various data types that need JSON.stringify
+      const testCases = [
+        { input: { nested: { deep: { value: 'test' } } }, expected: JSON.stringify({ nested: { deep: { value: 'test' } } }) },
+        { input: [1, 2, 3, 'test'], expected: JSON.stringify([1, 2, 3, 'test']) },
+        { input: { boolean: true, null_val: null, number: 42 }, expected: JSON.stringify({ boolean: true, null_val: null, number: 42 }) }
+      ];
+
+      testCases.forEach(({ input, expected }) => {
+        const result = validator.validateRequestBody(input);
+        expect(result).toBe(expected);
+      });
     });
   });
 
