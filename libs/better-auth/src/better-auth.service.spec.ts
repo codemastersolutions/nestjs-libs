@@ -8,6 +8,7 @@ import {
 } from './better-auth.constants';
 import { BetterAuthService } from './better-auth.service';
 import type { BetterAuthModuleOptions } from './better-auth.types';
+import { RateLimiter } from './utils/rate-limiter.util';
 
 describe('BetterAuthService', () => {
   let service: BetterAuthService;

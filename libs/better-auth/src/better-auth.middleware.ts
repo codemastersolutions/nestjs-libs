@@ -1,6 +1,8 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 import { BetterAuthService } from './better-auth.service';
+import { logger } from './utils/logger.util';
+import { RequestValidator } from './utils/request-validator.util';
 
 /**
  * Universal request interface that supports both Express and other HTTP frameworks
@@ -40,7 +42,7 @@ export class BetterAuthMiddleware implements NestMiddleware {
       ? `/${options.globalPrefix}/api/auth`
       : '/api/auth';
 
-    console.log('[BetterAuthMiddleware] Request received:', {
+    logger.debug('Request received', {
       path: req.path,
       url: req.url,
       method: req.method,
@@ -59,14 +61,9 @@ export class BetterAuthMiddleware implements NestMiddleware {
       // Fastify case - req is the raw IncomingMessage
       // Parse URL to get just the pathname
       try {
-        // Validate and sanitize host header to prevent Host Header Injection
-        const rawHost = Array.isArray(req.headers?.host)
-          ? req.headers.host[0]
-          : req.headers?.host;
-
-        // Validate host header format and reject suspicious values
-        const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
-        const host = rawHost && hostRegex.test(rawHost) ? rawHost : 'localhost';
+        // Use RequestValidator for enhanced security validation
+        const validator = new RequestValidator(options);
+        const host = validator.validateHostHeader(req.headers?.host);
 
         const url = new URL(req.url, `http://${host}`);
         requestPath = url.pathname;
@@ -79,6 +76,12 @@ export class BetterAuthMiddleware implements NestMiddleware {
 
     if (requestPath.startsWith(authPath)) {
       try {
+        // Enhanced security validation
+        const validator = new RequestValidator(options);
+
+        // Validate request headers
+        const sanitizedHeaders = validator.validateHeaders(req.headers || {});
+
         // Create a Web API compatible request object
         const protocol = req.protocol || 'http';
         const rawHostHeader = req.get
@@ -87,22 +90,24 @@ export class BetterAuthMiddleware implements NestMiddleware {
             ? req.headers.host[0]
             : req.headers?.host;
 
-        // Validate host header to prevent Host Header Injection
-        const hostRegex = /^[a-zA-Z0-9.-]+(?::[0-9]+)?$/;
-        const host =
-          rawHostHeader && hostRegex.test(rawHostHeader)
-            ? rawHostHeader
-            : 'localhost';
+        // Use enhanced host validation
+        const host = validator.validateHostHeader(rawHostHeader);
         const originalUrl = req.originalUrl || req.url || '';
         const method = req.method || 'GET';
 
+        // Validate request body if present
+        let validatedBody: string | undefined;
+        if (method !== 'GET' && method !== 'HEAD' && req.body) {
+          const contentType = Array.isArray(req.headers?.['content-type'])
+            ? req.headers['content-type'][0]
+            : req.headers?.['content-type'];
+          validatedBody = validator.validateRequestBody(req.body, contentType);
+        }
+
         const webRequest = new Request(`${protocol}://${host}${originalUrl}`, {
           method,
-          headers: new Headers(req.headers as Record<string, string>),
-          body:
-            method !== 'GET' && method !== 'HEAD' && req.body
-              ? JSON.stringify(req.body)
-              : undefined,
+          headers: new Headers(sanitizedHeaders as Record<string, string>),
+          body: validatedBody,
         });
 
         const response = await this.betterAuthService.handleRequest(webRequest);
@@ -133,9 +138,10 @@ export class BetterAuthMiddleware implements NestMiddleware {
         // Handle authentication errors securely
         if (error instanceof Error) {
           // Log error for debugging purposes without exposing sensitive details
-          console.error(
-            `[BetterAuthMiddleware] Authentication error: ${error.name}`,
-          );
+          logger.error('Authentication error occurred', error, {
+            path: requestPath,
+            method: req.method,
+          });
         }
 
         if (!options.disableExceptionFilter) {

@@ -1,8 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { BetterAuthController } from './better-auth.controller';
 import { BetterAuthModule } from './better-auth.module';
 import { BetterAuthService } from './better-auth.service';
-import { BetterAuthController } from './better-auth.controller';
-import { BetterAuthModuleOptions } from './better-auth.types';
+import type { BetterAuthModuleOptions } from './better-auth.types';
+import { RateLimiter } from './utils/rate-limiter.util';
 
 describe('BetterAuthModule', () => {
   const mockAuth = {
@@ -133,4 +134,5 @@ describe('BetterAuthModule', () => {
       expect(controller).toBeDefined();
     });
   });
+
 });

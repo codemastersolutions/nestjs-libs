@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BetterAuthController } from './better-auth.controller';
 import { BetterAuthService } from './better-auth.service';
+import { RateLimiter } from './utils/rate-limiter.util';
 import {
   BETTER_AUTH_INSTANCE,
   BETTER_AUTH_OPTIONS,

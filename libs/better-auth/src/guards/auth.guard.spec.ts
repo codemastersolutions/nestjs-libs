@@ -4,6 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 import { BetterAuthService } from '../better-auth.service';
 import { PUBLIC_METADATA_KEY } from '../decorators/public.decorator';
+import { RateLimiter } from '../utils/rate-limiter.util';
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;

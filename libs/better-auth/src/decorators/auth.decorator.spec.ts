@@ -1,5 +1,6 @@
 import { AuthRequired, AUTH_METADATA_KEY } from './auth.decorator';
 import { Reflector } from '@nestjs/core';
+import { RateLimiter } from '../utils/rate-limiter.util';
 
 describe('AuthRequired Decorator', () => {
   let reflector: Reflector;
@@ -31,4 +32,5 @@ describe('AuthRequired Decorator', () => {
     const metadata = reflector.get(AUTH_METADATA_KEY, TestController);
     expect(metadata).toBe(true);
   });
+
 });
