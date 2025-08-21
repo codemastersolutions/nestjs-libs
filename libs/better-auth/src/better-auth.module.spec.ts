@@ -2,8 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BetterAuthController } from './better-auth.controller';
 import { BetterAuthModule } from './better-auth.module';
 import { BetterAuthService } from './better-auth.service';
-import type { BetterAuthModuleOptions } from './better-auth.types';
+import type { BetterAuthModuleOptions, BetterAuthOptionsFactory } from './better-auth.types';
 import { RateLimiter } from './utils/rate-limiter.util';
+import { AuthGuard } from './guards/auth.guard';
+import { BETTER_AUTH_INSTANCE, BETTER_AUTH_OPTIONS } from './better-auth.constants';
 
 describe('BetterAuthModule', () => {
   const mockAuth = {
@@ -107,6 +109,8 @@ describe('BetterAuthModule', () => {
       const service = module.get<BetterAuthService>(BetterAuthService);
       expect(service).toBeDefined();
     });
+
+
   });
 
   describe('controller registration', () => {
@@ -132,6 +136,50 @@ describe('BetterAuthModule', () => {
 
       const controller = module.get<BetterAuthController>(BetterAuthController);
       expect(controller).toBeDefined();
+    });
+  });
+
+  describe('providers and exports', () => {
+    it('should provide and export AuthGuard', async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [BetterAuthModule.forRoot(mockOptions)],
+      }).compile();
+
+      const authGuard = module.get<AuthGuard>(AuthGuard);
+      expect(authGuard).toBeDefined();
+    });
+
+    it('should provide BETTER_AUTH_OPTIONS token', async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [BetterAuthModule.forRoot(mockOptions)],
+      }).compile();
+
+      const options = module.get(BETTER_AUTH_OPTIONS);
+      expect(options).toEqual(mockOptions);
+    });
+
+    it('should provide BETTER_AUTH_INSTANCE token', async () => {
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [BetterAuthModule.forRoot(mockOptions)],
+      }).compile();
+
+      const instance = module.get(BETTER_AUTH_INSTANCE);
+      expect(instance).toBe(mockOptions.auth);
+    });
+
+    it('should provide BETTER_AUTH_INSTANCE token with async configuration', async () => {
+      const factory = jest.fn().mockReturnValue(mockOptions);
+
+      const module: TestingModule = await Test.createTestingModule({
+        imports: [
+          BetterAuthModule.forRootAsync({
+            useFactory: factory,
+          }),
+        ],
+      }).compile();
+
+      const instance = module.get(BETTER_AUTH_INSTANCE);
+      expect(instance).toBe(mockOptions.auth);
     });
   });
 

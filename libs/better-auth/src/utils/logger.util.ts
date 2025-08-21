@@ -130,16 +130,69 @@ export class BetterAuthLogger {
 
     const sensitiveKeys = [
       'password',
-      'token',
       'secret',
       'key',
+      'token',
+      'auth',
+      'credential',
+      'bearer',
+      'x-api-key',
+      'apikey',
       'authorization',
       'cookie',
       'session',
-      'auth',
-      'bearer',
-      'x-api-key',
     ];
+
+    const visited = new WeakSet();
+
+    // Add the context object itself to prevent self-references
+    visited.add(context);
+
+    const sanitizeValue = (value: unknown): unknown => {
+      if (value === null || value === undefined) {
+        return value;
+      }
+
+      if (Array.isArray(value)) {
+        if (visited.has(value)) {
+          return '[Circular Reference]';
+        }
+        visited.add(value);
+        return value.map((item) => sanitizeValue(item));
+      }
+
+      if (typeof value === 'object' && value !== null) {
+        if (visited.has(value)) {
+          return '[Circular Reference]';
+        }
+        visited.add(value);
+
+        const sanitizedObj: Record<string, unknown> = {};
+        for (const [objKey, objValue] of Object.entries(
+          value as Record<string, unknown>,
+        )) {
+          const lowerKey = objKey.toLowerCase();
+          const isSensitive = sensitiveKeys.some((sensitiveKey) =>
+            lowerKey.includes(sensitiveKey),
+          );
+
+          if (isSensitive) {
+            sanitizedObj[objKey] = '[REDACTED]';
+          } else {
+            sanitizedObj[objKey] = sanitizeValue(objValue);
+          }
+        }
+
+        return sanitizedObj;
+      }
+
+      if (typeof value === 'string' && value.length > 100) {
+        // Truncate long strings to prevent log pollution
+        return `${value.substring(0, 100)}...[TRUNCATED]`;
+      }
+
+      return value;
+    };
 
     const sanitized: Record<string, unknown> = {};
 
@@ -151,11 +204,8 @@ export class BetterAuthLogger {
 
       if (isSensitive) {
         sanitized[key] = '[REDACTED]';
-      } else if (typeof value === 'string' && value.length > 100) {
-        // Truncate long strings to prevent log pollution
-        sanitized[key] = `${value.substring(0, 100)}...[TRUNCATED]`;
       } else {
-        sanitized[key] = value;
+        sanitized[key] = sanitizeValue(value);
       }
     }
 
@@ -164,17 +214,15 @@ export class BetterAuthLogger {
 
   /**
    * Logs security-related events with high priority
-   * Always logs regardless of log level (unless NONE)
+   * Always logs regardless of log level
    * @param event - The security event description
    * @param details - Event details (sanitized)
    */
   security(event: string, details?: Record<string, unknown>): void {
-    if (this.logLevel !== LogLevel.NONE) {
-      console.error(`[BetterAuth:SECURITY] ${event}`, {
-        timestamp: new Date().toISOString(),
-        details: this.sanitizeContext(details),
-      });
-    }
+    console.error(`[BetterAuth:SECURITY] ${event}`, {
+      timestamp: new Date().toISOString(),
+      details: this.sanitizeContext(details),
+    });
   }
 }
 

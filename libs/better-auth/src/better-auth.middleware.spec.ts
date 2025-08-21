@@ -8,6 +8,12 @@ import { BetterAuthMiddleware } from './better-auth.middleware';
 import { BetterAuthService } from './better-auth.service';
 import type { BetterAuthModuleOptions } from './better-auth.types';
 import { RateLimiter } from './utils/rate-limiter.util';
+import { logger } from './utils/logger.util';
+import { RequestValidator } from './utils/request-validator.util';
+
+// Mock the logger and RequestValidator
+jest.mock('./utils/logger.util');
+jest.mock('./utils/request-validator.util');
 
 describe('BetterAuthMiddleware', () => {
   let middleware: BetterAuthMiddleware;
@@ -16,10 +22,17 @@ describe('BetterAuthMiddleware', () => {
   let mockNext: jest.Mock;
   let mockResponse: any;
   let consoleErrorSpy: jest.SpyInstance;
+  let mockLogger: jest.Mocked<typeof logger>;
 
   beforeEach(async () => {
     // Mock console.error to suppress security logs during tests
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    // Mock logger
+    mockLogger = logger as jest.Mocked<typeof logger>;
+    mockLogger.debug = jest.fn();
+    mockLogger.error = jest.fn();
+    
     // Mock options
     mockOptions = {
       auth: {
@@ -238,9 +251,13 @@ describe('BetterAuthMiddleware', () => {
       ).rejects.toThrow('Auth error');
 
       // Verify that error was logged for security purposes
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[BetterAuth:ERROR] Authentication error occurred'),
-        expect.any(Object),
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Authentication error occurred',
+        error,
+        {
+          path: '/api/auth/session',
+          method: 'GET',
+        },
       );
     });
 
@@ -267,9 +284,13 @@ describe('BetterAuthMiddleware', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
 
       // Verify that error was logged for security purposes
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[BetterAuth:ERROR] Authentication error occurred'),
-        expect.any(Object),
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        'Authentication error occurred',
+        error,
+        {
+          path: '/api/auth/session',
+          method: 'GET',
+        },
       );
       expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
       expect(mockNext).not.toHaveBeenCalled();
@@ -400,6 +421,225 @@ describe('BetterAuthMiddleware', () => {
 
       expect(mockBetterAuthService.handleRequest).toHaveBeenCalled();
       expect(mockNext).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('RequestValidator integration', () => {
+    let mockRequestValidator: jest.Mocked<RequestValidator>;
+
+    beforeEach(() => {
+      mockRequestValidator = {
+        validateHostHeader: jest.fn(),
+        validateHeaders: jest.fn(),
+        validateRequestBody: jest.fn(),
+      } as any;
+      
+      (RequestValidator as jest.MockedClass<typeof RequestValidator>).mockImplementation(() => mockRequestValidator);
+    });
+
+    it('should use RequestValidator for host validation in Fastify requests', async () => {
+      const mockRequest = {
+        url: '/api/auth/session',
+        method: 'GET',
+        headers: { host: 'localhost' },
+      };
+
+      mockRequestValidator.validateHostHeader.mockReturnValue('localhost');
+      mockRequestValidator.validateHeaders.mockReturnValue({ host: 'localhost' });
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(mockWebResponse as any);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(RequestValidator).toHaveBeenCalledWith(mockOptions);
+      expect(mockRequestValidator.validateHostHeader).toHaveBeenCalledWith('localhost');
+      expect(mockRequestValidator.validateHeaders).toHaveBeenCalledWith({ host: 'localhost' });
+    });
+
+    it('should handle RequestValidator errors gracefully in URL parsing', async () => {
+      const mockRequest = {
+        url: '/api/auth/session?param=value',
+        method: 'GET',
+        headers: { host: 'invalid-host' },
+      };
+
+      // First call (URL parsing) throws error, second call (headers validation) succeeds
+      mockRequestValidator.validateHostHeader
+        .mockImplementationOnce(() => {
+          throw new Error('Invalid host');
+        })
+        .mockReturnValue('invalid-host');
+      mockRequestValidator.validateHeaders.mockReturnValue({ host: 'invalid-host' });
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(mockWebResponse as any);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      // Should use fallback URL parsing (split by query params)
+      expect(mockBetterAuthService.handleRequest).toHaveBeenCalled();
+    });
+
+    it('should validate request body for non-GET requests', async () => {
+      const mockRequest = {
+        path: '/api/auth/signin',
+        method: 'POST',
+        headers: { 
+          host: 'localhost',
+          'content-type': 'application/json'
+        },
+        protocol: 'http',
+        originalUrl: '/api/auth/signin',
+        body: { email: 'test@example.com' },
+        get: jest.fn().mockReturnValue('localhost'),
+      };
+
+      mockRequestValidator.validateHostHeader.mockReturnValue('localhost');
+      mockRequestValidator.validateHeaders.mockReturnValue({ 
+        host: 'localhost',
+        'content-type': 'application/json'
+      });
+      mockRequestValidator.validateRequestBody.mockReturnValue(JSON.stringify({ email: 'test@example.com' }));
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(mockWebResponse as any);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(mockRequestValidator.validateRequestBody).toHaveBeenCalledWith(
+        { email: 'test@example.com' },
+        'application/json'
+      );
+    });
+
+    it('should handle array content-type headers', async () => {
+      const mockRequest = {
+        path: '/api/auth/signin',
+        method: 'POST',
+        headers: { 
+          host: 'localhost',
+          'content-type': ['application/json', 'charset=utf-8']
+        },
+        protocol: 'http',
+        originalUrl: '/api/auth/signin',
+        body: { email: 'test@example.com' },
+        get: jest.fn().mockReturnValue('localhost'),
+      };
+
+      mockRequestValidator.validateHostHeader.mockReturnValue('localhost');
+      mockRequestValidator.validateHeaders.mockReturnValue({ 
+        host: 'localhost',
+        'content-type': 'application/json'
+      });
+      mockRequestValidator.validateRequestBody.mockReturnValue(JSON.stringify({ email: 'test@example.com' }));
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(mockWebResponse as any);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(mockRequestValidator.validateRequestBody).toHaveBeenCalledWith(
+        { email: 'test@example.com' },
+        'application/json'
+      );
+    });
+  });
+
+  describe('Logger integration', () => {
+    it('should log debug information for requests', async () => {
+      const mockRequest = {
+        path: '/api/auth/session',
+        method: 'GET',
+        headers: { host: 'localhost' },
+        protocol: 'http',
+        originalUrl: '/api/auth/session',
+        get: jest.fn().mockReturnValue('localhost'),
+      };
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(logger.debug).toHaveBeenCalledWith('Request received', {
+        path: '/api/auth/session',
+        url: undefined,
+        method: 'GET',
+        authPath: '/api/auth',
+      });
+    });
+
+    it('should log debug information with globalPrefix', async () => {
+      mockOptions.globalPrefix = 'v1';
+      mockBetterAuthService.getOptions.mockReturnValue(mockOptions);
+
+      const mockRequest = {
+        path: '/v1/api/auth/session',
+        method: 'GET',
+        headers: { host: 'localhost' },
+        protocol: 'http',
+        originalUrl: '/v1/api/auth/session',
+        get: jest.fn().mockReturnValue('localhost'),
+      };
+
+      const mockWebResponse = {
+        status: 200,
+        headers: new Map(),
+        text: jest.fn().mockResolvedValue('{}'),
+      };
+
+      mockBetterAuthService.handleRequest.mockResolvedValue(mockWebResponse as any);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(logger.debug).toHaveBeenCalledWith('Request received', {
+        path: '/v1/api/auth/session',
+        url: undefined,
+        method: 'GET',
+        authPath: '/v1/api/auth',
+      });
+    });
+  });
+
+  describe('Edge cases for error handling', () => {
+    it('should handle non-Error objects in catch block', async () => {
+      const mockRequest = {
+        path: '/api/auth/session',
+        method: 'GET',
+        headers: { host: 'localhost' },
+        protocol: 'http',
+        originalUrl: '/api/auth/session',
+        get: jest.fn().mockReturnValue('localhost'),
+      };
+
+      // Throw a non-Error object
+      mockBetterAuthService.handleRequest.mockRejectedValue('String error');
+
+      mockOptions.disableExceptionFilter = true;
+      mockBetterAuthService.getOptions.mockReturnValue(mockOptions);
+
+      await middleware.use(mockRequest, mockResponse, mockNext);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.send).toHaveBeenCalledWith('Internal Server Error');
     });
   });
 });
