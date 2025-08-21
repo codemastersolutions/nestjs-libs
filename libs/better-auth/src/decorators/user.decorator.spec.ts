@@ -1,6 +1,15 @@
 import { ExecutionContext } from '@nestjs/common';
 import { User } from './user.decorator';
 
+// Type definitions for testing
+interface TestUser {
+  id: string;
+  email: string;
+  name: string;
+  age: number;
+  isActive: boolean;
+}
+
 describe('User Decorator', () => {
   let mockExecutionContext: ExecutionContext;
   let mockRequest: any;
@@ -303,5 +312,140 @@ describe('User Decorator', () => {
     mockRequest.user = undefined;
     const undefinedResult = simulateUserDecorator('name', mockExecutionContext);
     expect(undefinedResult).toBeUndefined();
+  });
+
+  it('should comprehensively test ternary operator with all falsy data values', () => {
+    const testUser = { id: 1, name: 'Test', '': 'empty', '0': 'zero', 'false': 'false', 'null': 'null', 'undefined': 'undefined' };
+    mockRequest.user = testUser;
+
+    // Test with undefined data (falsy) - should return entire user
+    const undefinedData = simulateUserDecorator(undefined, mockExecutionContext);
+    expect(undefinedData).toEqual(testUser);
+
+    // Test with null data (falsy) - should return entire user
+    const nullData = simulateUserDecorator(null as any, mockExecutionContext);
+    expect(nullData).toEqual(testUser);
+
+    // Test with empty string data (falsy) - should return entire user
+    const emptyStringData = simulateUserDecorator('', mockExecutionContext);
+    expect(emptyStringData).toEqual(testUser);
+
+    // Test with number 0 data (falsy) - should return entire user
+    const zeroData = simulateUserDecorator(0 as any, mockExecutionContext);
+    expect(zeroData).toEqual(testUser);
+
+    // Test with boolean false data (falsy) - should return entire user
+    const falseData = simulateUserDecorator(false as any, mockExecutionContext);
+    expect(falseData).toEqual(testUser);
+
+    // Test with string '0' data (truthy) - should return user['0']
+    const stringZeroData = simulateUserDecorator('0', mockExecutionContext);
+    expect(stringZeroData).toBe('zero');
+
+    // Test with string 'false' data (truthy) - should return user['false']
+    const stringFalseData = simulateUserDecorator('false', mockExecutionContext);
+    expect(stringFalseData).toBe('false');
+
+    // Test with string 'null' data (truthy) - should return user['null']
+    const stringNullData = simulateUserDecorator('null', mockExecutionContext);
+    expect(stringNullData).toBe('null');
+
+    // Test with string 'undefined' data (truthy) - should return user['undefined']
+    const stringUndefinedData = simulateUserDecorator('undefined', mockExecutionContext);
+    expect(stringUndefinedData).toBe('undefined');
+  });
+
+  it('should test ternary operator with optional chaining scenarios', () => {
+    // Test when data is truthy but user is null - optional chaining should return undefined
+    mockRequest.user = null;
+    const nullUserResult = simulateUserDecorator('name', mockExecutionContext);
+    expect(nullUserResult).toBeUndefined();
+
+    // Test when data is truthy but user is undefined - optional chaining should return undefined
+    mockRequest.user = undefined;
+    const undefinedUserResult = simulateUserDecorator('name', mockExecutionContext);
+    expect(undefinedUserResult).toBeUndefined();
+
+    // Test when data is truthy and user exists but property doesn't exist
+    mockRequest.user = { id: 1 };
+    const nonExistentProp = simulateUserDecorator('nonexistent', mockExecutionContext);
+    expect(nonExistentProp).toBeUndefined();
+
+    // Test when data is truthy and user exists and property exists
+    mockRequest.user = { id: 1, name: 'Test' };
+    const existentProp = simulateUserDecorator('name', mockExecutionContext);
+    expect(existentProp).toBe('Test');
+  });
+
+  describe('Generic typing tests', () => {
+    it('should work with typed user object (full user)', () => {
+      const mockUser: TestUser = {
+        id: '123',
+        email: 'test@example.com',
+        name: 'John Doe',
+        age: 30,
+        isActive: true,
+      };
+      mockRequest.user = mockUser;
+
+      const result = simulateUserDecorator(undefined, mockExecutionContext);
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should work with typed user object (specific property)', () => {
+      const mockUser: TestUser = {
+        id: '123',
+        email: 'test@example.com',
+        name: 'John Doe',
+        age: 30,
+        isActive: true,
+      };
+      mockRequest.user = mockUser;
+
+      const result = simulateUserDecorator('email', mockExecutionContext);
+      expect(result).toBe('test@example.com');
+    });
+
+    it('should work with typed user object (number property)', () => {
+      const mockUser: TestUser = {
+        id: '123',
+        email: 'test@example.com',
+        name: 'John Doe',
+        age: 30,
+        isActive: true,
+      };
+      mockRequest.user = mockUser;
+
+      const result = simulateUserDecorator('age', mockExecutionContext);
+      expect(result).toBe(30);
+    });
+
+    it('should work with typed user object (boolean property)', () => {
+      const mockUser: TestUser = {
+        id: '123',
+        email: 'test@example.com',
+        name: 'John Doe',
+        age: 30,
+        isActive: true,
+      };
+      mockRequest.user = mockUser;
+
+      const result = simulateUserDecorator('isActive', mockExecutionContext);
+      expect(result).toBe(true);
+    });
+
+    it('should handle undefined property with typed user', () => {
+      const mockUser: TestUser = {
+        id: '123',
+        email: 'test@example.com',
+        name: 'John Doe',
+        age: 30,
+        isActive: true,
+      };
+      mockRequest.user = mockUser;
+
+      const result = simulateUserDecorator('nonexistent', mockExecutionContext);
+      expect(result).toBeUndefined();
+    });
   });
 });
