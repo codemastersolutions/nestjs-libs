@@ -1,6 +1,6 @@
-# @cms-nestjs-libs/better-auth | 🚧 Em Desenvolvimento, erros podem ocorrer. |
+# @cms-nestjs-libs/better-auth
 
-**📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
+**📖 Escolha seu idioma / Choose your language / Elige tu idioma:**
 
 - [🇺🇸 English](README.md)
 - [🇧🇷 Português](README.pt-BR.md)
@@ -10,8 +10,10 @@
 
 [![npm version](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth.svg)](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-Compatible-red.svg)](https://nestjs.com/)
 
-Uma integração abrangente do NestJS para [Better Auth](https://www.better-auth.com/), fornecendo recursos de autenticação perfeitos para suas aplicações NestJS.
+Uma integração abrangente do NestJS para [Better Auth](https://www.better-auth.com/), fornecendo recursos de autenticação perfeitos para suas aplicações NestJS com suporte universal para **Express.js** e **Fastify**.
 
 ## Inspiração e Necessidade
 
@@ -33,20 +35,40 @@ Nosso objetivo é fornecer à comunidade NestJS uma solução de autenticação 
 - 🛡️ **Rate Limiting**: Rate limiting integrado com limites configuráveis
 - 🛠️ **Configuração Flexível**: Suporte para configuração síncrona e assíncrona
 - 🌐 **Suporte Universal a Frameworks**: Funciona perfeitamente com Express.js e Fastify
-- 📦 **Suporte TypeScript**: Suporte completo ao TypeScript com definições de tipos
+- 📦 **Suporte TypeScript Completo**: Definições de tipos completas e inferência de tipos
+- 🎯 **Decorators e Guards**: Decorators prontos para uso e guards de autenticação
 - 🔧 **Personalizável**: Middleware, CORS e tratamento de exceções configuráveis
 - ⚡ **Otimizado para Performance**: Manipulação eficiente de requisições e validação
 - 🔐 **Segurança Aprimorada**: Validação de host header, sanitização de requisições e validação de entrada
+- 📝 **Logging Configurável**: Sistema de logging flexível para debugging e monitoramento
 
 ## Instalação
 
 ```bash
+pnpm add @cms-nestjs-libs/better-auth better-auth
+# ou
 npm install @cms-nestjs-libs/better-auth better-auth
 # ou
 yarn add @cms-nestjs-libs/better-auth better-auth
-# ou
-pnpm add @cms-nestjs-libs/better-auth better-auth
 ```
+
+### Dependências Peer
+
+Esta biblioteca requer as seguintes dependências peer (que devem estar instaladas no seu projeto):
+
+**Pacotes Core do NestJS:**
+- `@nestjs/common` (^10.0.0)
+- `@nestjs/core` (^10.0.0)
+
+**Adaptadores HTTP (escolha um):**
+- `@nestjs/platform-express` + `express` (para Express.js)
+- `@nestjs/platform-fastify` + `fastify` (para Fastify)
+
+**Biblioteca de Autenticação:**
+- `better-auth` (^1.0.0)
+
+**TypeScript:**
+- `typescript` (^5.0.0)
 
 ## Variáveis de Ambiente
 
@@ -275,7 +297,99 @@ export const BETTER_AUTH_INSTANCE = Symbol('BETTER_AUTH_INSTANCE');
 export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
 ```
 
-## Configuração Avançada
+## Decorators e Guards
+
+A biblioteca fornece decorators e guards prontos para uso para autenticação e autorização:
+
+### Decorators Disponíveis
+
+#### `@AuthRequired()`
+Protege rotas que requerem autenticação. Pode ser aplicado a classes de controller ou métodos.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AuthRequired } from '@cms-nestjs-libs/better-auth';
+
+@Controller('protegido')
+export class ControllerProtegido {
+  @AuthRequired()
+  @Get()
+  obterDadosProtegidos() {
+    return { message: 'Estes dados requerem autenticação' };
+  }
+}
+```
+
+#### `@Public()`
+Marca rotas como públicas (sem necessidade de autenticação). Útil quando há um guard de autenticação global.
+
+```typescript
+import { Controller, Post } from '@nestjs/common';
+import { Public } from '@cms-nestjs-libs/better-auth';
+
+@Controller('auth')
+export class AuthController {
+  @Public()
+  @Post('login')
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+}
+```
+
+#### `@User()`
+Extrai o usuário autenticado da requisição. Deve ser usado junto com guards de autenticação.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AuthRequired, User } from '@cms-nestjs-libs/better-auth';
+
+interface TipoUsuario {
+  id: string;
+  email: string;
+  name: string;
+}
+
+@Controller('perfil')
+export class PerfilController {
+  @AuthRequired()
+  @Get()
+  obterPerfil(@User<TipoUsuario>() usuario: TipoUsuario) {
+    return { usuario };
+  }
+
+  @AuthRequired()
+  @Get('id')
+  obterIdUsuario(@User<TipoUsuario, 'id'>('id') idUsuario: string) {
+    return { idUsuario };
+  }
+}
+```
+
+### Guards Disponíveis
+
+#### `AuthGuard`
+Guard integrado que manipula autenticação para rotas. Injeta automaticamente dados de usuário e sessão no objeto de requisição.
+
+```typescript
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@cms-nestjs-libs/better-auth';
+
+@Controller('api')
+@UseGuards(AuthGuard)
+export class ApiController {
+  @Get('dados')
+  obterDados() {
+    return { message: 'Dados protegidos' };
+  }
+}
+```
+
+O `AuthGuard` automaticamente:
+- Verifica se a rota está marcada como pública com `@Public()`
+- Valida a sessão do usuário usando Better Auth
+- Injeta objetos `user` e `session` na requisição
+- Lança `UnauthorizedException` para autenticação inválida ou ausente
 
 ### Configuração Assíncrona
 
@@ -294,15 +408,15 @@ import { betterAuth } from 'better-auth';
         auth: betterAuth({
           database: {
             provider: 'postgresql',
-            url: configService.get('DATABASE_URL'),
+            url: configService.get('NEST_LIBS_BA_DATABASE_URL'),
           },
-          secret: configService.get('AUTH_SECRET'),
+          secret: configService.get('NEST_LIBS_BA_AUTH_SECRET'),
           emailAndPassword: {
             enabled: true,
           },
           // Outras configurações do ambiente
         }),
-        globalPrefix: configService.get('API_PREFIX', 'api'),
+        globalPrefix: configService.get('NEST_LIBS_BA_API_PREFIX', 'api'),
       }),
       inject: [ConfigService],
     }),
@@ -331,9 +445,9 @@ export class BetterAuthConfigService implements BetterAuthOptionsFactory {
       auth: betterAuth({
         database: {
           provider: 'postgresql',
-          url: this.configService.get('DATABASE_URL'),
+          url: this.configService.get('NEST_LIBS_BA_DATABASE_URL'),
         },
-        secret: this.configService.get('AUTH_SECRET'),
+        secret: this.configService.get('NEST_LIBS_BA_AUTH_SECRET'),
         emailAndPassword: {
           enabled: true,
         },
@@ -582,15 +696,30 @@ app.enableCors({ /* config */ });
 
 ## Contribuindo
 
-Contribuições são bem-vindas! Por favor, leia nosso [Guia de Contribuição](../../.github/README.md) para detalhes.
+Contribuições são bem-vindas! Por favor, veja nosso [Guia de Contribuição](CONTRIBUTING.md) para detalhes.
+
+### Configuração de Desenvolvimento
+
+1. Clone o repositório
+2. Instale as dependências: `pnpm install`
+3. Execute os testes: `pnpm test`
+4. Faça o build da biblioteca: `pnpm build`
 
 ## Licença
 
-MIT © [CodeMaster Soluções](https://github.com/codemastersolutions)
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## Links
+## Suporte
 
-- [Documentação do Better Auth](https://www.better-auth.com/)
-- [Documentação do NestJS](https://nestjs.com/)
-- [Repositório GitHub](https://github.com/codemastersolutions/nestjs-libs)
-- [Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
+- 📖 [Documentação](https://github.com/cms-nestjs-libs/better-auth)
+- 🐛 [Rastreador de Issues](https://github.com/cms-nestjs-libs/better-auth/issues)
+- 💬 [Discussões](https://github.com/cms-nestjs-libs/better-auth/discussions)
+
+## Projetos Relacionados
+
+- [Better Auth](https://github.com/better-auth/better-auth) - A biblioteca de autenticação principal
+- [NestJS](https://nestjs.com/) - Um framework Node.js progressivo
+
+---
+
+Feito com ❤️ pela equipe CMS NestJS Libs

@@ -1,6 +1,6 @@
-# @cms-nestjs-libs/better-auth | 🚧 En Desarrollo, pueden ocurrir errores. |
+# @cms-nestjs-libs/better-auth
 
-**📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
+**📖 Elige tu idioma / Choose your language / Escolha seu idioma:**
 
 - [🇺🇸 English](README.md)
 - [🇧🇷 Português](README.pt-BR.md)
@@ -10,8 +10,10 @@
 
 [![npm version](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth.svg)](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-Compatible-red.svg)](https://nestjs.com/)
 
-Una integración integral de NestJS para [Better Auth](https://www.better-auth.com/), proporcionando capacidades de autenticación perfectas para tus aplicaciones NestJS.
+Una integración integral de NestJS para [Better Auth](https://www.better-auth.com/), proporcionando capacidades de autenticación perfectas para tus aplicaciones NestJS con soporte universal para **Express.js** y **Fastify**.
 
 ## Inspiración y Necesidad
 
@@ -33,20 +35,40 @@ Nuestro objetivo es proporcionar a la comunidad NestJS una solución de autentic
 - 🛡️ **Rate Limiting**: Rate limiting integrado con límites configurables
 - 🛠️ **Configuración Flexible**: Soporte para configuración síncrona y asíncrona
 - 🌐 **Soporte Universal de Frameworks**: Funciona perfectamente con Express.js y Fastify
-- 📦 **Soporte TypeScript**: Soporte completo de TypeScript con definiciones de tipos
+- 📦 **Soporte TypeScript Completo**: Definiciones de tipos completas e inferencia de tipos
+- 🎯 **Decoradores y Guards**: Decoradores listos para usar y guards de autenticación
 - 🔧 **Personalizable**: Middleware, CORS y manejo de excepciones configurables
 - ⚡ **Optimizado para Rendimiento**: Manejo eficiente de solicitudes y validación
 - 🔐 **Seguridad Mejorada**: Validación de host header, sanitización de solicitudes y validación de entrada
+- 📝 **Logging Configurable**: Sistema de logging flexible para debugging y monitoreo
 
 ## Instalación
 
 ```bash
+pnpm add @cms-nestjs-libs/better-auth better-auth
+# o
 npm install @cms-nestjs-libs/better-auth better-auth
 # o
 yarn add @cms-nestjs-libs/better-auth better-auth
-# o
-pnpm add @cms-nestjs-libs/better-auth better-auth
 ```
+
+### Dependencias Peer
+
+Esta biblioteca requiere las siguientes dependencias peer (que deben estar instaladas en tu proyecto):
+
+**Paquetes Core de NestJS:**
+- `@nestjs/common` (^10.0.0)
+- `@nestjs/core` (^10.0.0)
+
+**Adaptadores HTTP (elige uno):**
+- `@nestjs/platform-express` + `express` (para Express.js)
+- `@nestjs/platform-fastify` + `fastify` (para Fastify)
+
+**Biblioteca de Autenticación:**
+- `better-auth` (^1.0.0)
+
+**TypeScript:**
+- `typescript` (^5.0.0)
 
 ## Variables de Entorno
 
@@ -269,9 +291,9 @@ BetterAuthModule.forRoot({
 BetterAuthModule.forRootAsync({
   useFactory: () => ({
     auth: betterAuth({ /* tu configuración */ }),
-    rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
-    rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
-    disableRateLimit: process.env.DISABLE_RATE_LIMIT === 'true',
+    rateLimitWindowMs: parseInt(process.env.NEST_LIBS_BA_RATE_LIMIT_WINDOW_MS) || 900000,
+    rateLimitMaxRequests: parseInt(process.env.NEST_LIBS_BA_RATE_LIMIT_MAX_REQUESTS) || 100,
+    disableRateLimit: process.env.NEST_LIBS_BA_DISABLE_RATE_LIMIT === 'true',
   }),
 })
 ```
@@ -321,6 +343,81 @@ export const BETTER_AUTH_INSTANCE = Symbol('BETTER_AUTH_INSTANCE');
 export const BETTER_AUTH_OPTIONS = Symbol('BETTER_AUTH_OPTIONS');
 ```
 
+## Decoradores y Guards
+
+### Decoradores Disponibles
+
+#### `@AuthRequired()`
+Requiere que el usuario esté autenticado para acceder al endpoint.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AuthRequired } from '@cms-nestjs-libs/better-auth';
+
+@Controller('protected')
+export class ProtectedController {
+  @Get()
+  @AuthRequired()
+  getProtectedData() {
+    return { message: 'Datos protegidos' };
+  }
+}
+```
+
+#### `@Public()`
+Marca un endpoint como público, omitiendo la verificación de autenticación.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { Public } from '@cms-nestjs-libs/better-auth';
+
+@Controller('auth')
+export class AuthController {
+  @Get('status')
+  @Public()
+  getStatus() {
+    return { status: 'OK' };
+  }
+}
+```
+
+#### `@User()`
+Inyecta el usuario actual en el parámetro del método.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { User, AuthRequired } from '@cms-nestjs-libs/better-auth';
+
+@Controller('profile')
+export class ProfileController {
+  @Get()
+  @AuthRequired()
+  getProfile(@User() user: any) {
+    return { user };
+  }
+}
+```
+
+### AuthGuard
+
+El `AuthGuard` proporciona protección automática de rutas basada en el estado de autenticación:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from '@cms-nestjs-libs/better-auth';
+
+@Module({
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
+})
+export class AppModule {}
+```
+
 ## Configuración Avanzada
 
 ### Configuración Asíncrona con Variables de Entorno
@@ -340,22 +437,22 @@ import { betterAuth } from 'better-auth';
         auth: betterAuth({
           database: {
             provider: 'postgresql',
-            url: configService.get('DATABASE_URL'),
+            url: configService.get('NEST_LIBS_BA_DATABASE_URL'),
           },
-          secret: configService.get('BETTER_AUTH_SECRET'),
-          baseURL: configService.get('BETTER_AUTH_BASE_URL'),
+          secret: configService.get('NEST_LIBS_BA_AUTH_SECRET'),
+          baseURL: configService.get('NEST_LIBS_BA_BASE_URL'),
           emailAndPassword: {
             enabled: true,
           },
         }),
         // Configuración de Rate Limiting
-        rateLimitWindowMs: parseInt(configService.get('RATE_LIMIT_WINDOW_MS')) || 900000,
-        rateLimitMaxRequests: parseInt(configService.get('RATE_LIMIT_MAX_REQUESTS')) || 100,
-        disableRateLimit: configService.get('DISABLE_RATE_LIMIT') === 'true',
+        rateLimitWindowMs: parseInt(configService.get('NEST_LIBS_BA_RATE_LIMIT_WINDOW_MS')) || 900000,
+        rateLimitMaxRequests: parseInt(configService.get('NEST_LIBS_BA_RATE_LIMIT_MAX_REQUESTS')) || 100,
+        disableRateLimit: configService.get('NEST_LIBS_BA_DISABLE_RATE_LIMIT') === 'true',
         // Configuración de Seguridad
-        enableRequestValidation: configService.get('ENABLE_REQUEST_VALIDATION') !== 'false',
-        trustedHosts: configService.get('TRUSTED_HOSTS')?.split(',') || [],
-        globalPrefix: configService.get('API_PREFIX', 'api'),
+        enableRequestValidation: configService.get('NEST_LIBS_BA_ENABLE_REQUEST_VALIDATION') !== 'false',
+        trustedHosts: configService.get('NEST_LIBS_BA_TRUSTED_HOSTS')?.split(',') || [],
+        globalPrefix: configService.get('NEST_LIBS_BA_API_PREFIX', 'api'),
       }),
       inject: [ConfigService],
     }),
@@ -384,7 +481,7 @@ import postgres from 'postgres';
     BetterAuthModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const connectionString = configService.get('DATABASE_URL');
+        const connectionString = configService.get('NEST_LIBS_BA_DATABASE_URL');
         const client = postgres(connectionString);
         const db = drizzle(client);
 
@@ -442,9 +539,9 @@ export class BetterAuthConfigService implements BetterAuthOptionsFactory {
       auth: betterAuth({
         database: {
           provider: 'postgresql',
-          url: this.configService.get('DATABASE_URL'),
+          url: this.configService.get('NEST_LIBS_BA_DATABASE_URL'),
         },
-        secret: this.configService.get('AUTH_SECRET'),
+        secret: this.configService.get('NEST_LIBS_BA_AUTH_SECRET'),
         emailAndPassword: {
           enabled: true,
         },
@@ -868,7 +965,7 @@ BetterAuthModule.forRootAsync({
     auth: betterAuth({
       database: {
         provider: 'postgresql', // o 'mysql', 'sqlite'
-        url: configService.get('DATABASE_URL'), // Verificar que esta variable exista
+        url: configService.get('NEST_LIBS_BA_DATABASE_URL'), // Verificar que esta variable exista
       },
       // ... resto de configuración
     }),
@@ -970,8 +1067,8 @@ async function bootstrap() {
       envFilePath: ['.env.local', '.env'], // Verificar rutas de archivos
       load: [() => ({
         // Valores por defecto
-        BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET || 'default-secret',
-        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://localhost:5432/db',
+        NEST_LIBS_BA_AUTH_SECRET: process.env.NEST_LIBS_BA_AUTH_SECRET || 'default-secret',
+        NEST_LIBS_BA_DATABASE_URL: process.env.NEST_LIBS_BA_DATABASE_URL || 'postgresql://localhost:5432/db',
       })],
     }),
     // ... resto de módulos
@@ -1039,7 +1136,7 @@ BetterAuthModule.forRoot({
     // Usar pool de conexiones para base de datos
     database: {
       provider: 'postgresql',
-      url: process.env.DATABASE_URL,
+      url: process.env.NEST_LIBS_BA_DATABASE_URL,
       pool: {
         min: 2,
         max: 10,
@@ -1078,17 +1175,50 @@ Si continúas teniendo problemas:
 3. **Busca issues existentes**: [GitHub Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
 4. **Crea un nuevo issue**: Incluye código de reproducción y logs de error
 
-## Contribuyendo
+## Contribuir
 
-¡Las contribuciones son bienvenidas! Por favor lee nuestra [Guía de Contribución](../../.github/README.md) para más detalles.
+¡Las contribuciones son bienvenidas! Por favor, sigue estos pasos:
+
+### Configuración de Desarrollo
+
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/your-org/cms-nestjs-libs.git
+   cd cms-nestjs-libs
+   ```
+
+2. **Instalar dependencias**
+   ```bash
+   pnpm install
+   ```
+
+3. **Ejecutar pruebas**
+   ```bash
+   pnpm test better-auth
+   ```
+
+4. **Construir la biblioteca**
+   ```bash
+   pnpm build better-auth
+   ```
 
 ## Licencia
 
-MIT © [CodeMaster Soluções](https://github.com/codemastersolutions)
+Este proyecto está licenciado bajo la Licencia MIT - consulta el archivo [LICENSE](LICENSE) para más detalles.
 
-## Enlaces
+## Soporte
 
-- [Documentación de Better Auth](https://www.better-auth.com/)
-- [Documentación de NestJS](https://nestjs.com/)
-- [Repositorio GitHub](https://github.com/codemastersolutions/nestjs-libs)
-- [Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
+- 📧 **Email**: [soporte@cms-nestjs-libs.com](mailto:soporte@cms-nestjs-libs.com)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/your-org/cms-nestjs-libs/issues)
+- 💬 **Discusiones**: [GitHub Discussions](https://github.com/your-org/cms-nestjs-libs/discussions)
+- 📖 **Documentación**: [Documentación Completa](https://cms-nestjs-libs.com/docs)
+
+## Proyectos Relacionados
+
+- [Better Auth](https://github.com/better-auth/better-auth) - La biblioteca de autenticación subyacente
+- [NestJS](https://nestjs.com/) - El framework Node.js progresivo
+- [CMS NestJS Libs](https://github.com/your-org/cms-nestjs-libs) - Colección de bibliotecas para NestJS
+
+---
+
+Hecho con ❤️ por el equipo de CMS NestJS Libs

@@ -17,8 +17,11 @@ export class RateLimiter {
   static initialize(): void {
     if (!this.cleanupInterval) {
       // Get cleanup interval from environment variable or default (5 minutes)
-      const interval = process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS
-        ? parseInt(process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS, 10)
+      const interval = process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS
+        ? parseInt(
+            process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS,
+            10,
+          )
         : 5 * 60 * 1000;
 
       this.cleanupInterval = setInterval(() => {
