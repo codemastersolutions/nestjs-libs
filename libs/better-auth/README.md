@@ -1,4 +1,4 @@
-# @cms-nestjs-libs/better-auth | 🚧 In Development, errors may occur. |
+# @cms-nestjs-libs/better-auth
 
 **📖 Choose your language / Escolha seu idioma / Elige tu idioma:**
 
@@ -10,8 +10,10 @@
 
 [![npm version](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth.svg)](https://badge.fury.io/js/@cms-nestjs-libs%2Fbetter-auth)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![NestJS](https://img.shields.io/badge/NestJS-v10%2B-red.svg)](https://nestjs.com/)
 
-A comprehensive NestJS integration for [Better Auth](https://www.better-auth.com/), providing seamless authentication capabilities for your NestJS applications.
+A comprehensive NestJS integration for [Better Auth](https://www.better-auth.com/), providing seamless authentication capabilities with support for both Express.js and Fastify frameworks.
 
 ## Inspiration and Need
 
@@ -33,19 +35,45 @@ Our goal is to provide the NestJS community with a robust, framework-agnostic au
 - 🛡️ **Rate Limiting**: Built-in rate limiting with configurable thresholds
 - 🛠️ **Flexible Configuration**: Support for both synchronous and asynchronous configuration
 - 🌐 **Universal Framework Support**: Works seamlessly with both Express.js and Fastify
-- 📦 **TypeScript Support**: Full TypeScript support with type definitions
+- 📦 **TypeScript Support**: Full TypeScript support with comprehensive type definitions
 - 🔧 **Customizable**: Configurable middleware, CORS, and exception handling
 - ⚡ **Performance Optimized**: Efficient request handling and validation
 - 🔐 **Enhanced Security**: Host header validation, request sanitization, and input validation
+- 🎯 **Decorators**: Ready-to-use decorators for authentication and authorization
+- 🛠️ **Guards**: Built-in guards for route protection
+- 📝 **Comprehensive Logging**: Configurable logging with multiple levels
 
 ## Installation
 
 ```bash
+# Using npm
 npm install @cms-nestjs-libs/better-auth better-auth
-# or
+
+# Using yarn
 yarn add @cms-nestjs-libs/better-auth better-auth
-# or
+
+# Using pnpm
 pnpm add @cms-nestjs-libs/better-auth better-auth
+```
+
+### Peer Dependencies
+
+This library requires the following peer dependencies:
+
+```bash
+# Core NestJS packages (required)
+npm install @nestjs/common @nestjs/core
+
+# Choose your HTTP adapter (one required)
+npm install @nestjs/platform-express express  # For Express.js
+# OR
+npm install @nestjs/platform-fastify fastify  # For Fastify
+
+# Better Auth (required)
+npm install better-auth
+
+# TypeScript (recommended)
+npm install typescript
 ```
 
 ## Environment Variables
@@ -57,44 +85,44 @@ The library supports several environment variables for configuration:
 | Variable | Description | Default | Example |
 |----------|-------------|---------|----------|
 | `NODE_ENV` | Environment mode | `development` | `production`, `test`, `development` |
-| `AUTH_SECRET` | Secret key for authentication | **Required** | `your-super-secret-key-here` |
-| `DATABASE_URL` | Database connection string | **Required** | `postgresql://user:pass@localhost:5432/db` |
-| `API_PREFIX` | Global API prefix | `api` | `v1`, `api/v2` |
+| `NEST_LIBS_BA_AUTH_SECRET` | Secret key for authentication | **Required** | `your-super-secret-key-here` |
+| `NEST_LIBS_BA_DATABASE_URL` | Database connection string | **Required** | `postgresql://user:pass@localhost:5432/db` |
+| `NEST_LIBS_BA_API_PREFIX` | Global API prefix | `api` | `v1`, `api/v2` |
 
 ### Rate Limiting Configuration
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|----------|
-| `RATE_LIMIT_WINDOW_MS` | Rate limit window in milliseconds | `900000` (15 min) | `60000` (1 min) |
-| `RATE_LIMIT_MAX_REQUESTS` | Maximum requests per window | `100` | `50`, `200` |
-| `RATE_LIMIT_ENABLED` | Enable/disable rate limiting | `true` | `false` |
+| `NEST_LIBS_BA_RATE_LIMIT_WINDOW_MS` | Rate limit window in milliseconds | `900000` (15 min) | `60000` (1 min) |
+| `NEST_LIBS_BA_RATE_LIMIT_MAX_REQUESTS` | Maximum requests per window | `100` | `50`, `200` |
+| `NEST_LIBS_BA_RATE_LIMIT_ENABLED` | Enable/disable rate limiting | `true` | `false` |
 
 ### Security Configuration
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|----------|
-| `CORS_ORIGIN` | Allowed CORS origins (comma-separated) | `http://localhost:3000` | `https://app.com,https://admin.app.com` |
-| `TRUSTED_HOSTS` | Trusted host patterns (comma-separated) | `localhost` | `app.com,*.app.com` |
-| `ENABLE_REQUEST_VALIDATION` | Enable request validation | `true` | `false` |
+| `NEST_LIBS_BA_CORS_ORIGIN` | Allowed CORS origins (comma-separated) | `http://localhost:3000` | `https://app.com,https://admin.app.com` |
+| `NEST_LIBS_BA_TRUSTED_HOSTS` | Trusted host patterns (comma-separated) | `localhost` | `app.com,*.app.com` |
+| `NEST_LIBS_BA_ENABLE_REQUEST_VALIDATION` | Enable request validation | `true` | `false` |
 
 ### Example .env File
 
 ```env
 # Core Configuration
 NODE_ENV=production
-AUTH_SECRET=your-super-secret-key-here-make-it-long-and-random
-DATABASE_URL=postgresql://username:password@localhost:5432/your_database
-API_PREFIX=api/v1
+NEST_LIBS_BA_AUTH_SECRET=your-super-secret-key-here-make-it-long-and-random
+NEST_LIBS_BA_DATABASE_URL=postgresql://username:password@localhost:5432/your_database
+NEST_LIBS_BA_API_PREFIX=api/v1
 
 # Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-RATE_LIMIT_ENABLED=true
+NEST_LIBS_BA_RATE_LIMIT_WINDOW_MS=900000
+NEST_LIBS_BA_RATE_LIMIT_MAX_REQUESTS=100
+NEST_LIBS_BA_RATE_LIMIT_ENABLED=true
 
 # Security
-CORS_ORIGIN=https://yourapp.com,https://admin.yourapp.com
-TRUSTED_HOSTS=yourapp.com,*.yourapp.com
-ENABLE_REQUEST_VALIDATION=true
+NEST_LIBS_BA_CORS_ORIGIN=https://yourapp.com,https://admin.yourapp.com
+NEST_LIBS_BA_TRUSTED_HOSTS=yourapp.com,*.yourapp.com
+NEST_LIBS_BA_ENABLE_REQUEST_VALIDATION=true
 ```
 
 ## Available Scripts
@@ -188,7 +216,99 @@ export class AuthController {
 }
 ```
 
-## Configuration Options
+## Decorators and Guards
+
+The library provides ready-to-use decorators and guards for authentication and authorization:
+
+### Available Decorators
+
+#### `@AuthRequired()`
+Protects routes that require authentication. Can be applied to controller classes or methods.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AuthRequired } from '@cms-nestjs-libs/better-auth';
+
+@Controller('protected')
+export class ProtectedController {
+  @AuthRequired()
+  @Get()
+  getProtectedData() {
+    return { message: 'This data requires authentication' };
+  }
+}
+```
+
+#### `@Public()`
+Marks routes as public (no authentication required). Useful when there is a global authentication guard.
+
+```typescript
+import { Controller, Post } from '@nestjs/common';
+import { Public } from '@cms-nestjs-libs/better-auth';
+
+@Controller('auth')
+export class AuthController {
+  @Public()
+  @Post('login')
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+}
+```
+
+#### `@User()`
+Extracts the authenticated user from the request. Should be used together with authentication guards.
+
+```typescript
+import { Controller, Get } from '@nestjs/common';
+import { AuthRequired, User } from '@cms-nestjs-libs/better-auth';
+
+interface UserType {
+  id: string;
+  email: string;
+  name: string;
+}
+
+@Controller('profile')
+export class ProfileController {
+  @AuthRequired()
+  @Get()
+  getProfile(@User<UserType>() user: UserType) {
+    return { user };
+  }
+
+  @AuthRequired()
+  @Get('id')
+  getUserId(@User<UserType, 'id'>('id') userId: string) {
+    return { userId };
+  }
+}
+```
+
+### Available Guards
+
+#### `AuthGuard`
+Built-in guard that handles authentication for routes. Automatically injects user and session data into the request object.
+
+```typescript
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@cms-nestjs-libs/better-auth';
+
+@Controller('api')
+@UseGuards(AuthGuard)
+export class ApiController {
+  @Get('data')
+  getData() {
+    return { message: 'Protected data' };
+  }
+}
+```
+
+The `AuthGuard` automatically:
+- Checks if the route is marked as public with `@Public()`
+- Validates the user session using Better Auth
+- Injects `user` and `session` objects into the request
+- Throws `UnauthorizedException` for invalid or missing authentication
 
 ### BetterAuthModuleOptions
 
@@ -341,25 +461,25 @@ import { betterAuth } from 'better-auth';
         auth: betterAuth({
           database: {
             provider: 'postgresql',
-            url: configService.get('DATABASE_URL'),
+            url: configService.get('NEST_LIBS_BA_DATABASE_URL'),
           },
-          secret: configService.get('AUTH_SECRET'),
+          secret: configService.get('NEST_LIBS_BA_AUTH_SECRET'),
           emailAndPassword: {
             enabled: true,
           },
           // Other Better Auth configuration
         }),
         // Global configuration
-        globalPrefix: configService.get('API_PREFIX', 'api'),
+        globalPrefix: configService.get('NEST_LIBS_BA_API_PREFIX', 'api'),
         
         // Rate limiting configuration from environment
-        rateLimitWindowMs: parseInt(configService.get('RATE_LIMIT_WINDOW_MS', '900000')),
-        rateLimitMaxRequests: parseInt(configService.get('RATE_LIMIT_MAX_REQUESTS', '100')),
-        disableRateLimit: configService.get('RATE_LIMIT_ENABLED', 'true') === 'false',
+        rateLimitWindowMs: parseInt(configService.get('NEST_LIBS_BA_RATE_LIMIT_WINDOW_MS', '900000')),
+        rateLimitMaxRequests: parseInt(configService.get('NEST_LIBS_BA_RATE_LIMIT_MAX_REQUESTS', '100')),
+        disableRateLimit: configService.get('NEST_LIBS_BA_RATE_LIMIT_ENABLED', 'true') === 'false',
         
         // Security configuration from environment
-        enableRequestValidation: configService.get('ENABLE_REQUEST_VALIDATION', 'true') === 'true',
-        trustedHosts: configService.get('TRUSTED_HOSTS', 'localhost').split(','),
+        enableRequestValidation: configService.get('NEST_LIBS_BA_ENABLE_REQUEST_VALIDATION', 'true') === 'true',
+        trustedHosts: configService.get('NEST_LIBS_BA_TRUSTED_HOSTS', 'localhost').split(','),
         
         // CORS configuration
         disableTrustedOriginsCors: false,
@@ -392,14 +512,14 @@ import postgres from 'postgres';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         // Database setup
-        const connectionString = configService.get('DATABASE_URL');
+        const connectionString = configService.get('NEST_LIBS_BA_DATABASE_URL');
         const client = postgres(connectionString);
         const db = drizzle(client);
 
         return {
           auth: betterAuth({
             database: database(db),
-            secret: configService.get('AUTH_SECRET'),
+            secret: configService.get('NEST_LIBS_BA_AUTH_SECRET'),
             
             // Email and password authentication
             emailAndPassword: {
@@ -465,9 +585,9 @@ export class BetterAuthConfigService implements BetterAuthOptionsFactory {
       auth: betterAuth({
         database: {
           provider: 'postgresql',
-          url: this.configService.get('DATABASE_URL'),
+          url: this.configService.get('NEST_LIBS_BA_DATABASE_URL'),
         },
-        secret: this.configService.get('AUTH_SECRET'),
+        secret: this.configService.get('NEST_LIBS_BA_AUTH_SECRET'),
         emailAndPassword: {
           enabled: true,
         },
@@ -917,15 +1037,15 @@ npm install
 
 **Solution**:
 ```typescript
-// Verify your DATABASE_URL format
+// Verify your NEST_LIBS_BA_DATABASE_URL format
 // PostgreSQL: postgresql://username:password@localhost:5432/database
 // MySQL: mysql://username:password@localhost:3306/database
 // SQLite: sqlite:./database.db
 
 // Test connection in your configuration
-const connectionString = configService.get('DATABASE_URL');
+const connectionString = configService.get('NEST_LIBS_BA_DATABASE_URL');
 if (!connectionString) {
-  throw new Error('DATABASE_URL is required');
+  throw new Error('NEST_LIBS_BA_DATABASE_URL is required');
 }
 ```
 
@@ -988,7 +1108,7 @@ auth: betterAuth({
     },
   },
   // Ensure secret is set and consistent
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.NEST_LIBS_BA_AUTH_SECRET,
 }),
 ```
 
@@ -1076,95 +1196,32 @@ app.enableCors({
 });
 
 // Add OpenAPI configuration
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
-const config = new DocumentBuilder()
-  .setTitle('Your API')
-  .setDescription('API with Better Auth integration')
-  .setVersion('1.0')
-  .addBearerAuth() // Add if using bearer tokens
-  .addCookieAuth('session') // Add for session cookies
-  .build();
-
-const document = SwaggerModule.createDocument(app, config);
-SwaggerModule.setup('api/docs', app, document);
-```
-
-#### 10. Performance Issues
-
-**Problem**: Slow authentication responses
-
-**Solution**:
-```typescript
-// Optimize database queries
-auth: betterAuth({
-  database: database(db, {
-    // Add database connection pooling
-    pool: {
-      min: 2,
-      max: 10,
-    },
-  }),
-  // Enable session caching
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 60 * 5, // 5 minutes cache
-    },
-  },
-}),
-
-// Reduce rate limiting overhead for high-traffic apps
-rateLimitWindowMs: 60 * 1000, // Shorter window
-rateLimitMaxRequests: 1000, // Higher limit
-```
-
-### Debug Mode
-
-Enable debug logging to troubleshoot issues:
-
-```typescript
-// Add to your main.ts
-if (process.env.NODE_ENV === 'development') {
-  // Enable Better Auth debug logs
-  process.env.DEBUG = 'better-auth:*';
-}
-
-// Or use NestJS logger
-import { Logger } from '@nestjs/common';
-
-const logger = new Logger('BetterAuth');
-logger.debug('Better Auth configuration:', {
-  rateLimitEnabled: !options.disableRateLimit,
-  requestValidationEnabled: options.enableRequestValidation,
-  trustedHosts: options.trustedHosts,
-});
-```
-
-### Getting Help
-
-If you're still experiencing issues:
-
-1. **Check the logs**: Enable debug mode and check both NestJS and Better Auth logs
-2. **Verify configuration**: Double-check all environment variables and configuration
-3. **Test in isolation**: Create a minimal reproduction case
-4. **Check versions**: Ensure you're using compatible versions of all dependencies
-5. **Community support**: 
-   - [GitHub Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
-   - [Better Auth Discord](https://discord.gg/better-auth)
-   - [NestJS Discord](https://discord.gg/nestjs)
-
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](../../.github/README.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+1. Clone the repository
+2. Install dependencies: `pnpm install`
+3. Run tests: `pnpm test`
+4. Build the library: `pnpm build`
 
 ## License
 
-MIT © [CodeMaster Soluções](https://github.com/codemastersolutions)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Links
+## Support
 
-- [Better Auth Documentation](https://www.better-auth.com/)
-- [NestJS Documentation](https://nestjs.com/)
-- [GitHub Repository](https://github.com/codemastersolutions/nestjs-libs)
-- [Issues](https://github.com/codemastersolutions/nestjs-libs/issues)
+- 📖 [Documentation](https://github.com/cms-nestjs-libs/better-auth)
+- 🐛 [Issue Tracker](https://github.com/cms-nestjs-libs/better-auth/issues)
+- 💬 [Discussions](https://github.com/cms-nestjs-libs/better-auth/discussions)
+
+## Related Projects
+
+- [Better Auth](https://github.com/better-auth/better-auth) - The core authentication library
+- [NestJS](https://nestjs.com/) - A progressive Node.js framework
+
+---
+
+Made with ❤️ by the CMS NestJS Libs team
