@@ -63,8 +63,8 @@ describe('RateLimiter', () => {
     });
 
     it('should use custom cleanup interval from environment variable', () => {
-      const originalEnv = process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS;
-      process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS = '30000';
+      const originalEnv = process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS;
+      process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS = '30000';
       
       // Reset cleanup interval
       (RateLimiter as any).cleanupInterval = null;
@@ -78,9 +78,9 @@ describe('RateLimiter', () => {
       
       // Restore environment
       if (originalEnv !== undefined) {
-        process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS = originalEnv;
+        process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS = originalEnv;
       } else {
-        delete process.env.RATE_LIMITER_CLEANUP_INTERVAL_MS;
+        delete process.env.NEST_LIBS_BA_RATE_LIMITER_CLEANUP_INTERVAL_MS;
       }
     });
   });
